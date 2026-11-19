@@ -40,4 +40,356 @@ textarea{min-height:70px;resize:vertical}
 .checks input{width:auto;margin:0}
 .who{font-size:14px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--bd)}
 .bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px}
-#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--acc);color:var(--accon);padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;pointer-events:none;transition:opacity
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--acc);color:var(--accon);padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center}
+#toast.on{opacity:1}
+.auth-swap{background:none;border:0;color:var(--acc);font:inherit;text-decoration:underline;cursor:pointer;padding:0;margin-top:12px}
+.cfield{cursor:pointer}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:50}
+.sheet{background:var(--card);color:var(--tx);width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));border:1px solid var(--bd);box-shadow:0 -8px 30px rgba(0,0,0,.25)}
+@media(min-width:600px){.modal{align-items:center}.sheet{border-radius:18px}}
+.seg{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.seg button{flex:1 1 90px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font:inherit;padding:11px 8px;border-radius:12px;cursor:pointer}
+.seg button.on{background:var(--acc);color:var(--accon);border-color:var(--acc);font-weight:600}
+.sheet .acts{display:flex;gap:10px;margin-top:16px}
+.sheet .acts .btn{flex:1}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🏀 Queen’s Court Finder</h1>
+<p class="sub">Short a player for open court? Post it, or jump into a run that needs one more.</p>
+<div id="status" class="note" hidden></div>
+
+<section id="login" hidden>
+<form id="loginForm" class="card">
+<h2 id="aTitle">Sign in</h2>
+<p class="meta">Use any email and a password. No verification email needed.</p>
+<label for="lEmail">Email</label>
+<input id="lEmail" type="email" placeholder="you@example.com" autocomplete="email" required>
+<label for="lPass">Password</label>
+<input id="lPass" type="password" placeholder="At least 6 characters" minlength="6" autocomplete="current-password" required>
+<div style="height:14px"></div>
+<button class="btn" id="aBtn" type="submit">Sign in</button>
+<div><button class="auth-swap" id="aSwap" type="button">No account? Create one</button></div>
+</form>
+</section>
+
+<div id="app" hidden>
+<div class="bar"><span class="meta" id="who"></span><button class="btn line" id="signOut" type="button">Sign out</button></div>
+<nav class="tabs" id="tabs">
+<button data-tab="feed" class="on">Open runs</button>
+<button data-tab="post">Need players</button>
+<button data-tab="people">Players</button>
+<button data-tab="me">My profile</button>
+</nav>
+
+<section id="tab-feed">
+<select id="fltSport" aria-label="Filter by sport"></select>
+<div style="height:12px"></div>
+<div id="list"></div>
+</section>
+
+<section id="tab-post" hidden>
+<div id="myPost"></div>
+<form id="postForm" class="card">
+<h2>Post a request</h2>
+<div class="row">
+<div><label for="fSport">Sport</label><select id="fSport"></select></div>
+<div><label for="fSpots">Players needed</label><select id="fSpots"></select></div>
+</div>
+<label for="fWhere">Where</label>
+<input id="fWhere" maxlength="80" placeholder="e.g. ARC main gym, Tindall Field, Kingston Hall courts" required>
+<div class="row">
+<div><label for="fWhen">When</label><input id="fWhen" type="datetime-local" required></div>
+<div><label for="fLevel">Skill level</label><select id="fLevel"></select></div>
+</div>
+<label for="fNotes">Notes (optional)</label>
+<textarea id="fNotes" maxlength="300" placeholder="We have 2, need a 3rd for 3v3. Bring a dark and light shirt."></textarea>
+<p class="meta">Posting replaces your current request. You can have one active request at a time.</p>
+<button class="btn" type="submit">Post request</button>
+</form>
+</section>
+
+<section id="tab-people" hidden>
+<div class="row">
+<input id="pSearch" placeholder="Search by name or major" aria-label="Search players">
+<select id="pSport" aria-label="Filter players by sport"></select>
+</div>
+<div style="height:12px"></div>
+<div id="people"></div>
+</section>
+
+<section id="tab-me" hidden>
+<form id="meForm" class="card">
+<h2>Your profile</h2>
+<p class="meta">Visible to other signed-in users so teammates can reach you. Only share what you’re comfortable with.</p>
+<label for="mName">Name</label>
+<input id="mName" maxlength="40" required>
+<div class="row">
+<div><label for="mYear">Year</label><select id="mYear" required></select></div>
+<div><label for="mMajor">Major</label><select id="mMajor" required></select></div>
+</div>
+<label for="mContact">How to reach you</label>
+<input id="mContact" class="cfield" readonly placeholder="Tap to choose email, phone or WhatsApp" autocomplete="off">
+<label for="mLevel">Usual skill level</label>
+<select id="mLevel"></select>
+<label>Sports you play</label>
+<div class="checks" id="mSports"></div>
+<div style="height:14px"></div>
+<button class="btn" type="submit">Save profile</button>
+</form>
+</section>
+</div>
+</div>
+<div id="cModal" class="modal" hidden>
+<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="cTitle">
+<h2 id="cTitle">How should people reach you?</h2>
+<div class="seg" id="cMethods">
+<button type="button" data-m="Email">✉️ Email</button>
+<button type="button" data-m="Phone">📞 Phone</button>
+<button type="button" data-m="WhatsApp">💬 WhatsApp</button>
+</div>
+<div id="cEntry" hidden>
+<label id="cLabel" for="cInput"></label>
+<input id="cInput" maxlength="80" autocomplete="off">
+</div>
+<div class="acts">
+<button class="btn line" id="cCancel" type="button">Cancel</button>
+<button class="btn" id="cDone" type="button">Done</button>
+</div>
+</div>
+</div>
+<div id="toast" role="status"></div>
+
+<script>
+(function(){
+"use strict";
+// ====== PASTE YOUR SUPABASE VALUES HERE (Project Settings > API) ======
+var SUPABASE_URL="https://gfdmkivwwgeiugmbfkbi.supabase.co";
+var SUPABASE_KEY="sb_publishable_9UI-Ae_CzRaK2O2k-jWgEQ_daBNQGu8";
+// ======================================================================
+
+var SPORTS=["Basketball","Volleyball","Badminton","Pickleball","Soccer","Tennis","Squash","Other"];
+var LEVELS=["Any level","Casual","Intermediate","Competitive"];
+var YEARS=["High school","1st year","2nd year","3rd year","4th year","5th year"];
+var MAJORS=["High school (no major)","Undeclared","Other / not listed",
+"Applied Science (Engineering) – General First Year",
+"Biochemistry","Biology","Biomedical Computing","Biotechnology","Business (Commerce)","Chemical Engineering","Chemistry","Civil Engineering","Classical Studies","Cognitive Science","Computer Engineering","Computer Science","Concurrent Education","Drama","Economics","Electrical Engineering","Engineering Chemistry","Engineering Physics","English Language and Literature","Environmental Science","Environmental Studies","Film and Media","Fine Art (Visual Art)","French","Gender Studies","Geography","Geological Engineering","Geology","Global Development Studies","Health Sciences","History","Indigenous Studies","Jewish Studies","Kinesiology","Languages, Literatures and Cultures","Law (JD)","Life Sciences","Linguistics","Mathematics","Mathematics and Engineering","Mathematics and Statistics","Mechanical Engineering","Medicine (MD)","Mining Engineering","Music","Nursing","Philosophy","Physics","Political Studies","Psychology","Religion","Sociology","Software Design","Statistics","Sustainability","Urban Planning"];
+var sb=null,uid=null,profiles={},posts=[],joins=[],busy=false,filled=false,loaded=false;
+var $=function(s){return document.querySelector(s)};
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]})}
+function opts(arr,first){return (first?"<option>"+esc(first)+"</option>":"")+arr.map(function(a){return "<option>"+esc(a)+"</option>"}).join("")}
+function toast(m){var t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(function(){t.classList.remove("on")},3800)}
+function fail(e){console.error(e);var m=String(e&&e.message||"");toast(/full/.test(m)?"That run just filled up.":/own run/.test(m)?"You can’t join your own run.":"Something went wrong. Please try again.")}
+function status(m){var s=$("#status");if(m){s.textContent=m;s.hidden=false}else{s.hidden=true}}
+function me(){return uid&&profiles[uid]?profiles[uid]:null}
+function when(iso){return new Date(iso).toLocaleString([],{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}
+function joinersOf(p){return joins.filter(function(j){return j.post_id===p.id}).map(function(j){return j.user_id})}
+function who(p){return p?esc(p.year||"")+(p.major&&p.major.indexOf("High school")!==0?" · "+esc(p.major):""):""}
+
+$("#fltSport").innerHTML=opts(SPORTS,"All sports");
+$("#pSport").innerHTML=opts(SPORTS,"All sports");
+$("#fSport").innerHTML=opts(SPORTS);
+$("#fLevel").innerHTML=opts(LEVELS);
+$("#mLevel").innerHTML=opts(LEVELS);
+$("#mYear").innerHTML="<option value=\"\">Select year</option>"+opts(YEARS);
+$("#mMajor").innerHTML="<option value=\"\">Select major</option>"+opts(MAJORS);
+var sp="";for(var i=1;i<=8;i++){sp+="<option value=\""+i+"\">"+i+"</option>"}
+$("#fSpots").innerHTML=sp;
+$("#mSports").innerHTML=SPORTS.map(function(s){return "<label><input type=\"checkbox\" value=\""+esc(s)+"\">"+esc(s)+"</label>"}).join("");
+
+function show(t){
+document.querySelectorAll("#tabs button").forEach(function(b){b.classList.toggle("on",b.dataset.tab===t)});
+["feed","post","people","me"].forEach(function(n){$("#tab-"+n).hidden=(n!==t)});
+}
+$("#tabs").addEventListener("click",function(e){var b=e.target.closest("button[data-tab]");if(b)show(b.dataset.tab)});
+
+function renderFeed(){
+var el=$("#list"),f=$("#fltSport").value,cutoff=Date.now()-2*3600000,banner="";
+if(!me()){banner="<div class=\"note\">Create your profile first so people know who’s joining. <a href=\"#\" data-go=\"me\">Set it up</a></div>"}
+var list=posts.filter(function(p){return Date.parse(p.starts_at)>cutoff&&(f==="All sports"||p.sport===f)}).sort(function(a,b){return Date.parse(a.starts_at)-Date.parse(b.starts_at)});
+if(!list.length){el.innerHTML=banner+"<div class=\"empty\">"+(loaded?"No open runs yet. Be the first to post one under “Need players”.":"Loading…")+"</div>";return}
+el.innerHTML=banner+list.map(function(p){
+var js=joinersOf(p),n=js.length,left=Math.max(0,p.spots-n),mine=p.host===uid,joined=!mine&&js.indexOf(uid)>-1,host=profiles[p.host]||{};
+var h="<div class=\"card\"><div class=\"top\"><span class=\"badge\">"+esc(p.sport)+"</span>"+(left?"<span class=\"need\">Need "+left+" more</span>":"<span class=\"full\">Full ✓</span>")+"</div>";
+h+="<div><strong>"+esc(when(p.starts_at))+"</strong> · "+esc(p.place)+"</div>";
+h+="<div class=\"meta\">"+esc(p.level||"Any level")+" · "+n+"/"+p.spots+" joined · Host: "+esc(host.name||"A player")+(host.year?" ("+who(host)+")":"")+"</div>";
+if(p.notes){h+="<div style=\"margin-top:6px\">"+esc(p.notes)+"</div>"}
+if(mine){
+h+="<div class=\"who\"><strong>Joined:</strong> "+(js.length?js.map(function(u){var q=profiles[u]||{};return esc(q.name||"A player")+" — "+esc(q.contact||"no contact")}).join("<br>"):"nobody yet")+"</div>";
+h+="<div style=\"margin-top:10px\"><button class=\"btn alt\" data-act=\"cancel\">Cancel request</button></div>";
+}else{
+if(joined){h+="<div class=\"who\">You’re in. Contact the host: <strong>"+esc(host.contact||"not provided")+"</strong></div>"}
+h+="<div style=\"margin-top:10px\"><button class=\"btn"+(joined?" line":"")+"\" data-act=\"join\" data-id=\""+esc(p.id)+"\""+((!joined&&!left)?" disabled":"")+">"+(joined?"Leave":(left?"I’m in":"Full"))+"</button></div>";
+}
+return h+"</div>"}).join("");
+}
+function renderMyPost(){
+var el=$("#myPost"),p=posts.filter(function(x){return x.host===uid})[0];
+if(!p){el.innerHTML="";return}
+el.innerHTML="<div class=\"card\"><h2>Your active request</h2><div><span class=\"badge\">"+esc(p.sport)+"</span> <strong>"+esc(when(p.starts_at))+"</strong> · "+esc(p.place)+"</div><div class=\"meta\">"+joinersOf(p).length+"/"+p.spots+" joined</div></div>";
+}
+function renderPeople(){
+var el=$("#people"),q=$("#pSearch").value.trim().toLowerCase(),s=$("#pSport").value;
+var ids=Object.keys(profiles).filter(function(id){var p=profiles[id];
+if(s!=="All sports"&&(p.sports||[]).indexOf(s)<0)return false;
+return !q||(String(p.name||"")+" "+String(p.major||"")+" "+String(p.year||"")).toLowerCase().indexOf(q)>-1}).sort(function(a,b){return String(profiles[a].name).localeCompare(String(profiles[b].name))});
+if(!ids.length){el.innerHTML="<div class=\"empty\">"+(loaded?"No players found.":"Loading…")+"</div>";return}
+el.innerHTML=ids.map(function(id){var p=profiles[id];
+return "<div class=\"card\"><div class=\"top\"><strong>"+esc(p.name)+(id===uid?" (you)":"")+"</strong><span class=\"meta\">"+esc(p.level||"")+"</span></div><div class=\"meta\">"+who(p)+"</div><div>"+(p.sports||[]).map(function(x){return "<span class=\"chip\">"+esc(x)+"</span>"}).join("")+"</div><div class=\"who\">"+esc(p.contact||"")+"</div></div>"}).join("");
+}
+function renderAll(){renderFeed();renderMyPost();renderPeople()}
+$("#fltSport").addEventListener("change",renderFeed);
+$("#pSearch").addEventListener("input",renderPeople);
+$("#pSport").addEventListener("change",renderPeople);
+
+async function loadAll(){
+var r=await Promise.all([sb.from("profiles").select("*"),sb.from("posts").select("*"),sb.from("joins").select("post_id,user_id")]);
+var err=r[0].error||r[1].error||r[2].error;
+if(err){console.error(err);status("Couldn’t load data. Check your Supabase setup and reload.");return}
+profiles={};r[0].data.forEach(function(p){profiles[p.id]=p});
+posts=r[1].data;joins=r[2].data;loaded=true;status("");fillProfile();renderAll();
+}
+function fillProfile(){
+var p=profiles[uid];if(!p||filled)return;filled=true;
+$("#mName").value=p.name||"";$("#mYear").value=p.year||"";$("#mMajor").value=p.major||"";$("#mContact").value=p.contact||"";
+if(p.level)$("#mLevel").value=p.level;
+document.querySelectorAll("#mSports input").forEach(function(i){i.checked=(p.sports||[]).indexOf(i.value)>-1});
+}
+async function act(fn,okMsg){
+if(busy)return;busy=true;
+try{await fn();if(okMsg)toast(okMsg);await loadAll()}catch(e){fail(e)}finally{busy=false}
+}
+function chk(r){if(r.error)throw r.error;return r}
+
+$("#list").addEventListener("click",function(e){
+var go=e.target.closest("[data-go]");if(go){e.preventDefault();show(go.dataset.go);return}
+var b=e.target.closest("button[data-act]");if(!b||b.disabled)return;
+if(b.dataset.act==="cancel"){act(async function(){chk(await sb.from("posts").delete().eq("host",uid))},"Request cancelled.")}
+if(b.dataset.act==="join"){
+if(!me()){toast("Create your profile first.");show("me");return}
+var id=b.dataset.id,has=joins.some(function(j){return j.post_id===id&&j.user_id===uid});
+act(async function(){
+if(has)chk(await sb.from("joins").delete().eq("post_id",id).eq("user_id",uid));
+else chk(await sb.from("joins").insert({post_id:id,user_id:uid}));
+},has?"You left the run.":"You’re in! Contact the host to confirm.");
+}
+});
+$("#postForm").addEventListener("submit",function(e){
+e.preventDefault();
+if(!me()){toast("Create your profile first.");show("me");return}
+var t=Date.parse($("#fWhen").value);
+if(isNaN(t)||t<Date.now()){toast("Pick a time in the future.");return}
+var place=$("#fWhere").value.trim();if(!place){toast("Add a location.");return}
+act(async function(){
+chk(await sb.from("posts").delete().eq("host",uid));
+chk(await sb.from("posts").insert({host:uid,sport:$("#fSport").value,place:place,starts_at:new Date(t).toISOString(),spots:parseInt($("#fSpots").value,10),level:$("#fLevel").value,notes:$("#fNotes").value.trim()}));
+$("#fNotes").value="";show("feed");
+},"Request posted!");
+});
+$("#meForm").addEventListener("submit",function(e){
+e.preventDefault();
+var sports=Array.prototype.slice.call(document.querySelectorAll("#mSports input:checked")).map(function(i){return i.value});
+var name=$("#mName").value.trim(),contact=$("#mContact").value.trim(),year=$("#mYear").value,major=$("#mMajor").value;
+if(!name||!contact||!year||!major){toast("Fill in name, year, major and contact.");return}
+if(!sports.length){toast("Pick at least one sport.");return}
+act(async function(){
+chk(await sb.from("profiles").upsert({id:uid,name:name,year:year,major:major,contact:contact,level:$("#mLevel").value,sports:sports,updated:new Date().toISOString()}));
+show("feed");
+},"Profile saved.");
+});
+
+var authMode="in";
+function setAuthMode(m){
+authMode=m;
+$("#aTitle").textContent=m==="in"?"Sign in":"Create account";
+$("#aBtn").textContent=m==="in"?"Sign in":"Create account";
+$("#aSwap").textContent=m==="in"?"No account? Create one":"Have an account? Sign in";
+$("#lPass").autocomplete=m==="in"?"current-password":"new-password";
+}
+$("#aSwap").addEventListener("click",function(){setAuthMode(authMode==="in"?"up":"in")});
+$("#loginForm").addEventListener("submit",async function(e){
+e.preventDefault();
+var em=$("#lEmail").value.trim().toLowerCase(),pw=$("#lPass").value,btn=$("#aBtn");
+if(pw.length<6){toast("Password must be at least 6 characters.");return}
+btn.disabled=true;
+try{
+var r;
+if(authMode==="up"){
+r=await sb.auth.signUp({email:em,password:pw});
+if(r.error){
+if(/registered|already/i.test(r.error.message||"")){toast("That email already has an account. Sign in instead.");setAuthMode("in")}
+else{console.error(r.error);toast(r.error.message||"Couldn’t create the account.")}
+return}
+if(!r.data.session){
+r=await sb.auth.signInWithPassword({email:em,password:pw});
+if(r.error){console.error(r.error);toast("Account created, but Supabase still requires email confirmation. Turn it off in Supabase: Authentication > Sign In / Providers > Email.");return}
+}
+}else{
+r=await sb.auth.signInWithPassword({email:em,password:pw});
+if(r.error){console.error(r.error);toast("Wrong email or password.");return}
+}
+}catch(err){fail(err)}finally{btn.disabled=false}
+});
+$("#signOut").addEventListener("click",async function(){await sb.auth.signOut();location.reload()});
+
+var CM={
+Email:{type:"email",ph:"you@example.com",label:"Email address"},
+Phone:{type:"tel",ph:"613 555 0123",label:"Phone number"},
+WhatsApp:{type:"tel",ph:"+1 613 555 0123",label:"WhatsApp number (include country code)"}
+};
+var cMethod="";
+function pickMethod(m){
+cMethod=m;
+document.querySelectorAll("#cMethods button").forEach(function(b){b.classList.toggle("on",b.dataset.m===m)});
+var c=CM[m],i=$("#cInput");
+$("#cEntry").hidden=false;$("#cLabel").textContent=c.label;i.type=c.type;i.placeholder=c.ph;
+i.inputMode=c.type==="tel"?"tel":"email";
+}
+function openContact(){
+var cur=$("#mContact").value,k=cur.indexOf(": "),m=k>0?cur.slice(0,k):"";
+$("#cInput").value="";$("#cEntry").hidden=true;cMethod="";
+document.querySelectorAll("#cMethods button").forEach(function(b){b.classList.remove("on")});
+if(CM[m]){pickMethod(m);$("#cInput").value=cur.slice(k+2)}
+$("#cModal").hidden=false;
+}
+function closeContact(){$("#cModal").hidden=true}
+function validContact(m,v){
+if(m==="Email")return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+var d=v.replace(/\D/g,"");return /^[+()\-.\s\d]+$/.test(v)&&d.length>=7&&d.length<=15;
+}
+$("#mContact").addEventListener("click",openContact);
+$("#mContact").addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();openContact()}});
+$("#cMethods").addEventListener("click",function(e){var b=e.target.closest("button[data-m]");if(b){pickMethod(b.dataset.m);$("#cInput").focus()}});
+$("#cCancel").addEventListener("click",closeContact);
+$("#cModal").addEventListener("click",function(e){if(e.target===this)closeContact()});
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("#cModal").hidden)closeContact()});
+$("#cInput").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();$("#cDone").click()}});
+$("#cDone").addEventListener("click",function(){
+if(!cMethod){toast("Choose email, phone or WhatsApp first.");return}
+var v=$("#cInput").value.trim();
+if(!validContact(cMethod,v)){toast(cMethod==="Email"?"Enter a valid email address.":"Enter a valid phone number.");return}
+$("#mContact").value=cMethod+": "+v;closeContact();
+});
+
+function enter(session){
+if(!session){$("#login").hidden=false;$("#app").hidden=true;return}
+if(uid===session.user.id)return;
+uid=session.user.id;filled=false;
+$("#login").hidden=true;$("#app").hidden=false;$("#who").textContent=session.user.email||"";
+loadAll();
+}
+async function init(){
+if(!window.supabase||SUPABASE_URL.indexOf("PASTE")===0||SUPABASE_KEY.indexOf("PASTE")===0){
+status("Setup needed: add your Supabase URL and key near the top of this file.");return}
+sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+sb.auth.onAuthStateChange(function(ev,session){enter(session)});
+var r=await sb.auth.getSession();enter(r.data.session);
+setInterval(function(){if(uid&&!busy&&!document.hidden)loadAll()},30000);
+}
+init();
+})();
+</script>
+</body>
+</html>
