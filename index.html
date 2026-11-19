@@ -180,8 +180,8 @@ var sb=null,uid=null,profiles={},posts=[],joins=[],busy=false,filled=false,loade
 var $=function(s){return document.querySelector(s)};
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]})}
 function opts(arr,first){return (first?"<option>"+esc(first)+"</option>":"")+arr.map(function(a){return "<option>"+esc(a)+"</option>"}).join("")}
-function toast(m){var t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(function(){t.classList.remove("on")},3800)}
-function fail(e){console.error(e);var m=String(e&&e.message||"");toast(/full/.test(m)?"That run just filled up.":/own run/.test(m)?"You can’t join your own run.":"Something went wrong. Please try again.")}
+function toast(m,ms){var t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(function(){t.classList.remove("on")},ms||3800)}
+function fail(e){console.error(e);var m=String(e&&e.message||""),d=[e&&e.message,e&&e.details,e&&e.hint,e&&e.code].filter(Boolean).join(" | ");toast(/full/.test(m)?"That run just filled up.":/own run/.test(m)?"You can’t join your own run.":"Error: "+(d||"Something went wrong. Please try again."),9000)}
 function status(m){var s=$("#status");if(m){s.textContent=m;s.hidden=false}else{s.hidden=true}}
 function me(){return uid&&profiles[uid]?profiles[uid]:null}
 function when(iso){return new Date(iso).toLocaleString([],{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}
