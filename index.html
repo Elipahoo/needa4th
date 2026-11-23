@@ -95,6 +95,22 @@ textarea{min-height:84px;resize:vertical}
 .btn.sm{padding:7px 13px;font-size:15px}
 .btn:disabled{opacity:.5;cursor:not-allowed;filter:none}
 .submit{margin-top:20px}
+.when{display:flex;flex-direction:column;gap:10px}
+.nowbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px 16px;border-radius:12px;border:2px solid var(--gold);background:transparent;color:var(--tx);font:700 22px/1 var(--disp);text-transform:uppercase;letter-spacing:.02em;cursor:pointer;transition:background .15s}
+.nowbtn:hover{background:rgba(255,255,255,.08)}
+.nowbtn[aria-pressed="true"]{background:var(--gold);color:var(--ink)}
+.or{display:flex;align-items:center;gap:10px;color:var(--mut);font-size:14px}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.days button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px;border-radius:10px;border:1px solid var(--line);background:var(--field);color:var(--tx);cursor:pointer;min-width:0}
+.days button b{font:700 17px/1 var(--disp);text-transform:uppercase}
+.days button small{font-size:12px;color:var(--mut)}
+.days button:hover:not(:disabled){border-color:var(--gold)}
+.days button[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:var(--ink)}
+.days button[aria-pressed="true"] small{color:var(--ink)}
+.days button:disabled{opacity:.35;cursor:not-allowed}
+.when.isnow .days,.when.isnow #fTime{opacity:.45}
+@media (max-width:560px){.days{grid-template-columns:repeat(4,1fr)}}
 .link{background:none;border:0;color:var(--gold);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px 0}
 .filters{display:flex;gap:12px;flex-wrap:wrap;max-width:700px;margin-bottom:16px}
 .filters>*{flex:1 1 200px}
@@ -222,11 +238,16 @@ textarea{min-height:84px;resize:vertical}
       <div><label for="fSport">Sport</label><select id="fSport"></select></div>
       <div><label for="fSpots">Players needed</label><select id="fSpots"></select></div>
     </div>
-    <label for="fWhere">Where</label>
-    <input id="fWhere" maxlength="80" placeholder="e.g. ARC main gym, Tindall Field, Kingston Hall courts" required>
     <div class="row">
-      <div><label for="fWhen">When</label><input id="fWhen" type="datetime-local" required></div>
+      <div><label for="fWhere">Where</label><select id="fWhere" required></select></div>
       <div><label for="fLevel">Skill level</label><select id="fLevel"></select></div>
+    </div>
+    <label id="whenLabel">When</label>
+    <div class="when" role="group" aria-labelledby="whenLabel">
+      <button class="nowbtn" id="fNow" type="button" aria-pressed="false"><span aria-hidden="true">⚡</span> Right now</button>
+      <div class="or"><span>or pick a time this week</span></div>
+      <div class="days" id="fDays" role="group" aria-label="Day"></div>
+      <select id="fTime" aria-label="Time"></select>
     </div>
     <label for="fNotes">Notes (optional)</label>
     <textarea id="fNotes" maxlength="300" placeholder="We have 2, need a 3rd for 3v3. Bring a dark and light shirt."></textarea>
@@ -293,6 +314,10 @@ var SUPABASE_KEY="sb_publishable_9UI-Ae_CzRaK2O2k-jWgEQ_daBNQGu8";
 // ======================================================================
 
 var SPORTS=["Basketball","Volleyball","Badminton","Pickleball","Soccer","Tennis","Squash","Other"];
+var EMO={Basketball:"🏀",Volleyball:"🏐",Badminton:"🏸",Pickleball:"🏓",Soccer:"⚽",Tennis:"🎾",Squash:"🎯",Other:"🏅"};
+// Spots people can pick from. Add or rename places here.
+var PLACES=[["Queen’s campus",["ARC – Main Gym","ARC – Squash Courts","Tindall Field","Nixon Field","Richardson Stadium","West Campus Fields","Kingston Hall Courts"]],
+["Around Kingston",["City Park Courts","Breakwater Park","Leon’s Centre"]]];
 var LEVELS=["Any level","Casual","Intermediate","Competitive"];
 var YEARS=["High school","1st year","2nd year","3rd year","4th year","5th year"];
 var MAJORS=["High school (no major)","Undeclared","Other / not listed",
@@ -304,18 +329,21 @@ var busy=false,filled=false,loaded=false,loadNo=0,openKey=null,channel=null,reco
 
 var $=function(s){return document.querySelector(s)};
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]})}
+function sp(s){return (EMO[s]?EMO[s]+" ":"")+esc(s)}
+function sportOpts(all){return (all?"<option value=\"All sports\">🏟️ All sports</option>":"")+SPORTS.map(function(s){return "<option value=\""+esc(s)+"\">"+sp(s)+"</option>"}).join("")}
 function opts(arr,first){return (first?"<option>"+esc(first)+"</option>":"")+arr.map(function(a){return "<option>"+esc(a)+"</option>"}).join("")}
 function toast(m,ms){var t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(function(){t.classList.remove("on")},ms||3800)}
 function fail(e){
   console.error(e);var m=String(e&&e.message||""),code=e&&e.code;
   if(code==="PGRST202"||code==="PGRST205"||code==="42P01"){toast("The database update hasn’t been run yet (database-setup.sql).",9000);return}
   if(code==="23502"&&/contact/.test(m)){toast("The database update hasn’t been run yet (database-setup.sql).",9000);return}
-  toast(/full/.test(m)?"That run just filled up.":/own run/.test(m)?"You can’t join your own run.":"Error: "+([m,e&&e.details,e&&e.hint].filter(Boolean).join(" | ")||"Something went wrong. Please try again."),9000);
+  toast(/^Pick a time/.test(m)?m+".":/full/.test(m)?"That run just filled up.":/own run/.test(m)?"You can’t join your own run.":"Error: "+([m,e&&e.details,e&&e.hint].filter(Boolean).join(" | ")||"Something went wrong. Please try again."),9000);
 }
 function chk(r){if(r.error)throw r.error;return r}
 function status(m){[$("#status"),$("#loginStatus")].forEach(function(s){s.textContent=m||"";s.hidden=!m})}
 function me(){return uid&&profiles[uid]?profiles[uid]:null}
 function nameOf(id){return (profiles[id]&&profiles[id].name)||"A player"}
+function runTime(iso){var t=Date.parse(iso);return t<=Date.now()?"Happening now · started "+new Date(t).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}):when(iso)}
 function when(iso){return new Date(iso).toLocaleString([],{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}
 function clock(iso){var d=new Date(iso),t=d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});return d.toDateString()===new Date().toDateString()?t:d.toLocaleDateString([],{month:"short",day:"numeric"})+", "+t}
 function live(p){return Date.parse(p.starts_at)>Date.now()-2*3600000}
@@ -325,20 +353,55 @@ function postById(id){return posts.filter(function(p){return same(p.id,id)})[0]|
 function myPost(){return posts.filter(function(p){return p.host===uid&&live(p)})[0]||null}
 function who(p){return p?esc(p.year||"")+(p.major&&p.major.indexOf("High school")!==0?" · "+esc(p.major):""):""}
 
-$("#fltSport").innerHTML=opts(SPORTS,"All sports");
-$("#pSport").innerHTML=opts(SPORTS,"All sports");
-$("#fSport").innerHTML=opts(SPORTS);
+$("#fltSport").innerHTML=sportOpts(true);
+$("#pSport").innerHTML=sportOpts(true);
+$("#fSport").innerHTML=sportOpts();
+$("#fWhere").innerHTML="<option value=\"\">Pick a location</option>"+PLACES.map(function(g){return "<optgroup label=\""+esc(g[0])+"\">"+opts(g[1])+"</optgroup>"}).join("");
 $("#fLevel").innerHTML=opts(LEVELS);
 $("#mLevel").innerHTML=opts(LEVELS);
 $("#mYear").innerHTML="<option value=\"\">Select year</option>"+opts(YEARS);
 $("#mMajor").innerHTML="<option value=\"\">Select major</option>"+opts(MAJORS);
 $("#fSpots").innerHTML=opts([1,2,3,4,5,6,7,8]);
-$("#mSports").innerHTML=SPORTS.map(function(s){return "<label><input type=\"checkbox\" value=\""+esc(s)+"\">"+esc(s)+"</label>"}).join("");
+$("#mSports").innerHTML=SPORTS.map(function(s){return "<label><input type=\"checkbox\" value=\""+esc(s)+"\">"+sp(s)+"</label>"}).join("");
+
+/* ---------- When picker: right now, or a time in the next 7 days ---------- */
+var nowMode=false,dayIx=-1;
+function dayStart(i){var d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+i);return d}
+function slotTime(i,v){var d=dayStart(i),p=v.split(":");d.setHours(+p[0],+p[1],0,0);return d.getTime()}
+function slots(i){var out=[],m;for(m=6*60;m<24*60;m+=15){var v=String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");if(slotTime(i,v)>Date.now()+5*60000)out.push(v)}return out}
+function niceTime(v){var p=v.split(":"),h=+p[0];return (h%12||12)+":"+p[1]+" "+(h<12?"AM":"PM")}
+function buildDays(){
+  var html="",i;
+  for(i=0;i<7;i++){var d=dayStart(i),top=i===0?"Today":i===1?"Tmrw":d.toLocaleDateString([],{weekday:"short"});
+    html+="<button type=\"button\" data-day=\""+i+"\" aria-pressed=\""+(i===dayIx&&!nowMode)+"\""+(slots(i).length?"":" disabled")+"><b>"+esc(top)+"</b><small>"+esc(d.toLocaleDateString([],{month:"short",day:"numeric"}))+"</small></button>"}
+  $("#fDays").innerHTML=html;
+}
+function buildTimes(){
+  var sel=$("#fTime"),keep=sel.value;
+  if(dayIx<0){sel.innerHTML="<option value=\"\">Pick a day first</option>";sel.disabled=true;return}
+  var list=slots(dayIx),groups=[["Morning",0,12],["Afternoon",12,17],["Evening",17,21],["Night",21,24]];
+  sel.disabled=false;
+  sel.innerHTML="<option value=\"\">Pick a time</option>"+groups.map(function(g){var g2=list.filter(function(v){var h=+v.slice(0,2);return h>=g[1]&&h<g[2]});return g2.length?"<optgroup label=\""+g[0]+"\">"+g2.map(function(v){return "<option value=\""+v+"\">"+niceTime(v)+"</option>"}).join("")+"</optgroup>":""}).join("");
+  if(list.indexOf(keep)>-1)sel.value=keep;
+}
+function setNow(on){nowMode=on;$("#fNow").setAttribute("aria-pressed",String(on));$(".when").classList.toggle("isnow",on);buildDays()}
+function resetWhen(){nowMode=false;dayIx=-1;setNow(false);buildTimes()}
+$("#fNow").addEventListener("click",function(){setNow(!nowMode)});
+$("#fDays").addEventListener("click",function(e){var b=e.target.closest("button[data-day]");if(!b||b.disabled)return;dayIx=+b.dataset.day;setNow(false);buildTimes();$("#fTime").focus()});
+$("#fTime").addEventListener("change",function(){if(nowMode)setNow(false)});
+$("#fTime").addEventListener("focus",function(){if(dayIx>-1&&!slots(dayIx).length){dayIx=-1;buildDays()}buildTimes()});
+function pickedTime(){
+  if(nowMode)return Date.now();
+  if(dayIx<0||!$("#fTime").value)return NaN;
+  return slotTime(dayIx,$("#fTime").value);
+}
+resetWhen();
 
 /* ---------- Sections ---------- */
 function show(t){
   document.querySelectorAll("#tabs button").forEach(function(b){var on=b.dataset.tab===t;b.classList.toggle("on",on);if(on)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
   TABS.forEach(function(n){$("#tab-"+n).hidden=(n!==t)});
+  if(t==="post"){buildDays();buildTimes()}
   window.scrollTo(0,0);
 }
 $("#tabs").addEventListener("click",function(e){var b=e.target.closest("button[data-tab]");if(b)show(b.dataset.tab)});
@@ -375,8 +438,8 @@ function renderFeed(){
     $("#list").innerHTML="<div class=\"empty\">"+(loaded?"<h2>No open runs"+(f==="All sports"?" yet":" for "+esc(f))+"</h2><p class=\"meta\" style=\"margin:0 0 16px\">Post one and get the game going.</p><button class=\"btn\" type=\"button\" data-go=\"post\">Post a request</button>":"Loading…")+"</div>";return}
   $("#list").innerHTML=list.map(function(p){
     var js=joinersOf(p),n=js.length,left=Math.max(0,p.spots-n),mine=p.host===uid,joined=!mine&&js.indexOf(uid)>-1,host=profiles[p.host]||{};
-    var h="<article class=\"card run\"><div class=\"top\"><span class=\"sport\">"+esc(p.sport)+"</span>"+(left?"<span class=\"need\">Need "+left+" more</span>":"<span class=\"need full\">Full</span>")+"</div>";
-    h+="<div class=\"time\">"+esc(when(p.starts_at))+"</div><div class=\"place\">"+esc(p.place)+"</div>"+pips(p,n);
+    var h="<article class=\"card run\"><div class=\"top\"><span class=\"sport\">"+sp(p.sport)+"</span>"+(left?"<span class=\"need\">Need "+left+" more</span>":"<span class=\"need full\">Full</span>")+"</div>";
+    h+="<div class=\"time\">"+esc(runTime(p.starts_at))+"</div><div class=\"place\">"+esc(p.place)+"</div>"+pips(p,n);
     h+="<div class=\"meta\">"+n+" of "+esc(p.spots)+" joined · "+esc(p.level||"Any level")+"</div>";
     h+="<div class=\"meta\">Host: "+(mine?"You":esc(host.name||"A player")+(host.year?" ("+who(host)+")":""))+"</div>";
     if(p.notes)h+="<p class=\"notes\">"+esc(p.notes)+"</p>";
@@ -386,7 +449,7 @@ function renderFeed(){
 }
 function renderMyPost(){
   var p=myPost();
-  $("#myPost").innerHTML=p?"<div class=\"card\"><h2>Your active request</h2><div style=\"margin-top:8px\"><span class=\"sport\">"+esc(p.sport)+"</span> · <strong>"+esc(when(p.starts_at))+"</strong> · "+esc(p.place)+"</div>"+pips(p,joinersOf(p).length)+joinedList(p,joinersOf(p))+"</div>":"";
+  $("#myPost").innerHTML=p?"<div class=\"card\"><h2>Your active request</h2><div style=\"margin-top:8px\"><span class=\"sport\">"+sp(p.sport)+"</span> · <strong>"+esc(runTime(p.starts_at))+"</strong> · "+esc(p.place)+"</div>"+pips(p,joinersOf(p).length)+joinedList(p,joinersOf(p))+"</div>":"";
   $("#myPost").hidden=!p;
 }
 function renderPeople(){
@@ -395,7 +458,7 @@ function renderPeople(){
     if(s!=="All sports"&&(p.sports||[]).indexOf(s)<0)return false;
     return !q||(String(p.name||"")+" "+String(p.major||"")+" "+String(p.year||"")).toLowerCase().indexOf(q)>-1}).sort(function(a,b){return String(profiles[a].name).localeCompare(String(profiles[b].name))});
   $("#people").innerHTML=ids.length?ids.map(function(id){var p=profiles[id];
-    return "<article class=\"card\"><div class=\"top\"><strong>"+esc(p.name)+(id===uid?" (you)":"")+"</strong><span class=\"meta\">"+esc(p.level||"")+"</span></div><div class=\"meta\">"+who(p)+"</div><div>"+(p.sports||[]).map(function(x){return "<span class=\"chip\">"+esc(x)+"</span>"}).join("")+"</div></article>"}).join("")
+    return "<article class=\"card\"><div class=\"top\"><strong>"+esc(p.name)+(id===uid?" (you)":"")+"</strong><span class=\"meta\">"+esc(p.level||"")+"</span></div><div class=\"meta\">"+who(p)+"</div><div>"+(p.sports||[]).map(function(x){return "<span class=\"chip\">"+sp(x)+"</span>"}).join("")+"</div></article>"}).join("")
     :"<div class=\"empty\">"+(loaded?"<h2>No players found</h2><span class=\"meta\">Try another name or sport.</span>":"Loading…")+"</div>";
 }
 function renderAll(){renderFeed();renderMyPost();renderPeople();renderThreads();renderChat()}
@@ -424,7 +487,7 @@ function renderThreads(){
   if(!chatReady){$("#threads").innerHTML="<div class=\"empty\"><h2>Chat isn’t set up yet</h2><span class=\"meta\">Run database-setup.sql in Supabase, then reload.</span></div>";return}
   $("#threads").innerHTML=ks.length?ks.map(function(k){
     var p=postById(split(k).post),o=otherIn(k),l=msgsOf(k).slice(-1)[0];
-    return "<button class=\"card thread\" type=\"button\" data-chat=\""+esc(k)+"\"><span class=\"ava\" aria-hidden=\"true\">"+esc(nameOf(o).charAt(0).toUpperCase())+"</span><span class=\"txt\"><strong>"+esc(nameOf(o))+"</strong><span class=\"meta\">"+esc(p.sport)+" · "+esc(when(p.starts_at))+"</span><span class=\"last\" style=\"display:block\">"+(l?(l.sender_id===uid?"You: ":"")+esc(l.body):"No messages yet")+"</span></span>"+(isUnread(k)?"<span class=\"count\">New</span>":"")+"</button>"}).join("")
+    return "<button class=\"card thread\" type=\"button\" data-chat=\""+esc(k)+"\"><span class=\"ava\" aria-hidden=\"true\">"+esc(nameOf(o).charAt(0).toUpperCase())+"</span><span class=\"txt\"><strong>"+esc(nameOf(o))+"</strong><span class=\"meta\">"+sp(p.sport)+" · "+esc(when(p.starts_at))+"</span><span class=\"last\" style=\"display:block\">"+(l?(l.sender_id===uid?"You: ":"")+esc(l.body):"No messages yet")+"</span></span>"+(isUnread(k)?"<span class=\"count\">New</span>":"")+"</button>"}).join("")
     :"<div class=\"empty\">"+(loaded?"<h2>No chats yet</h2><p class=\"meta\" style=\"margin:0 0 16px\">Join a run and a chat with the host opens here.</p><button class=\"btn\" type=\"button\" data-go=\"feed\">Find a run</button>":"Loading…")+"</div>";
 }
 var drawn="";
@@ -435,7 +498,7 @@ function renderChat(){
   var ok=canSend(openKey),list=msgsOf(openKey),box=$("#msgs"),sig=openKey+":"+list.map(function(m){return m.id}).join(",");
   $("#chatName").textContent=nameOf(otherIn(openKey));
   $("#chatAva").textContent=nameOf(otherIn(openKey)).charAt(0).toUpperCase();
-  $("#chatRun").textContent=p.sport+" · "+when(p.starts_at)+(s.player===uid?" · Host":"");
+  $("#chatRun").textContent=(EMO[p.sport]?EMO[p.sport]+" ":"")+p.sport+" · "+when(p.starts_at)+(s.player===uid?" · Host":"");
   $("#chatForm").hidden=!ok;$("#chatClosed").hidden=ok;
   if(sig!==drawn){
     var bottom=drawn.indexOf(openKey+":")!==0||box.scrollHeight-box.scrollTop-box.clientHeight<80||(list.length&&list[list.length-1].sender_id===uid);
@@ -542,15 +605,16 @@ $("#list").addEventListener("click",async function(e){
 $("#postForm").addEventListener("submit",async function(e){
   e.preventDefault();
   if(!me()){toast("Create your profile first.");show("me");return}
-  var t=Date.parse($("#fWhen").value);
-  if(isNaN(t)||t<Date.now()){toast("Pick a time in the future.");return}
-  var place=$("#fWhere").value.trim();if(!place){toast("Add a location.");return}
+  var place=$("#fWhere").value;if(!place){toast("Pick a location.");return}
+  var t=pickedTime();
+  if(isNaN(t)){toast("Tap Right now, or pick a day and a time.");return}
+  if(!nowMode&&(t<Date.now()||t>=dayStart(7).getTime())){toast("That time has passed. Pick another one.");buildDays();buildTimes();return}
   var old=myPost(),n=old?joinersOf(old).length:0;
   if(old&&!await ask("Replace your current request?",n?(n===1?"1 player has":n+" players have")+" joined it. They’ll be removed and its chats will be deleted.":"Your current request will be removed.","Replace it"))return;
   var ok=await act(async function(){
-    chk(await sb.rpc("replace_post",{p_sport:$("#fSport").value,p_place:place,p_starts_at:new Date(t).toISOString(),p_spots:parseInt($("#fSpots").value,10),p_level:$("#fLevel").value,p_notes:$("#fNotes").value.trim()}));
+    chk(await sb.rpc("replace_post",{p_sport:$("#fSport").value,p_place:place,p_starts_at:new Date(nowMode?Date.now():t).toISOString(),p_spots:parseInt($("#fSpots").value,10),p_level:$("#fLevel").value,p_notes:$("#fNotes").value.trim()}));
   },"Request posted!");
-  if(ok){$("#postForm").reset();show("feed")}
+  if(ok){$("#postForm").reset();resetWhen();show("feed")}
 });
 $("#meForm").addEventListener("submit",async function(e){
   e.preventDefault();
