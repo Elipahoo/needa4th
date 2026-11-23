@@ -173,6 +173,39 @@ textarea{min-height:84px;resize:vertical}
   #toast{bottom:92px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* Social: people cards, photos, badges */
+.ava{overflow:hidden}
+.ava img{width:100%;height:100%;object-fit:cover;display:block}
+.ava.sm{width:30px;height:30px;font-size:15px}
+.ava.lg{width:88px;height:88px;font-size:40px}
+.ava.grp{background:#1b3263;font-size:22px}
+.person{display:flex;flex-direction:column;gap:8px}
+.ptop{display:flex;align-items:center;gap:12px;min-width:0}
+.ptop>div{min-width:0}
+.ptop strong{display:block;overflow-wrap:anywhere}
+.badge{display:inline-block;font-size:13px;font-weight:700;padding:2px 9px;border-radius:999px;background:#d8243f;color:#fff;vertical-align:middle;margin-left:6px}
+.badge.who{background:#7b5cff}
+.person .acts{padding-top:6px}
+.sec{margin:26px 0 12px;font-size:28px;text-transform:uppercase;text-shadow:0 2px 12px rgba(3,10,28,.8)}
+.sec:first-child{margin-top:0}
+.from{display:block;font-size:13px;font-weight:700;color:var(--gold);margin-bottom:2px}
+.chat header .x{flex:none}
+.photo{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.photo .btn{display:inline-block}
+.photo input{position:absolute;width:1px;height:1px;opacity:0}
+.rep{max-width:100%;border-left:3px solid var(--gold);padding:6px 10px;margin:8px 0;background:rgba(255,255,255,.05);overflow-wrap:anywhere;white-space:pre-wrap}
+.thumb{width:72px;height:72px;border-radius:10px;object-fit:cover}
+.founder{display:none!important}
+body.admin .founder{display:flex!important}
+body.banned .nav,body.banned main>section{display:none!important}
+#bannedBox{max-width:620px}
+.intro{margin:-6px 0 16px;max-width:700px;background:var(--glass2);border:1px solid var(--line);border-radius:12px;padding:10px 14px;color:var(--tx)}
+@media (max-width:720px){
+  .nav{overflow-x:auto;justify-content:flex-start;scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  .nav button{flex:1 0 auto;width:auto;min-width:68px}
+}
 </style>
 </head>
 <body>
@@ -184,7 +217,11 @@ textarea{min-height:84px;resize:vertical}
 <symbol id="i-post" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></g></symbol>
 <symbol id="i-chats" viewBox="0 0 24 24"><path d="M4 5h16v11H10l-5 4v-4H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
 <symbol id="i-people" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.500"/><path d="M2.500 20c0-4 3-6 6.500-6s6.500 2 6.500 6M16 4.800a3.500 3.500 0 0 1 0 6.400M18 14.500c2.200.8 3.500 2.700 3.500 5.500"/></g></symbol>
+<symbol id="i-history" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.500 12a8.500 8.500 0 1 0 2.500-6"/><path d="M3 3.500V8h4.500M12 7.500V12l3 2"/></g></symbol>
+<symbol id="i-block" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M5.700 5.700l12.600 12.600"/></g></symbol>
 <symbol id="i-me" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.500 3.500-7 8-7s8 2.500 8 7"/></g></symbol>
+<symbol id="i-grid" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><rect x="3.500" y="3.500" width="7" height="7" rx="1.500"/><rect x="13.500" y="3.500" width="7" height="7" rx="1.500"/><rect x="3.500" y="13.500" width="7" height="7" rx="1.500"/><rect x="13.500" y="13.500" width="7" height="7" rx="1.500"/></g></symbol>
+<symbol id="i-flag" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></g></symbol>
 <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2.500" stroke-linecap="round"/></symbol>
 </svg>
 
@@ -213,14 +250,19 @@ textarea{min-height:84px;resize:vertical}
     <button data-tab="feed" type="button"><svg width="22" height="22"><use href="#i-feed"/></svg>Open runs</button>
     <button data-tab="post" type="button"><svg width="22" height="22"><use href="#i-post"/></svg>Need players</button>
     <button data-tab="chats" type="button"><svg width="22" height="22"><use href="#i-chats"/></svg>Chats<span class="count" id="unread" hidden></span></button>
-    <button data-tab="people" type="button"><svg width="22" height="22"><use href="#i-people"/></svg>Players</button>
+    <button data-tab="friends" type="button"><svg width="22" height="22"><use href="#i-people"/></svg>Friends<span class="count" id="freq" hidden></span></button>
+    <button data-tab="played" type="button"><svg width="22" height="22"><use href="#i-history"/></svg>Played with</button>
+    <button data-tab="blocked" type="button"><svg width="22" height="22"><use href="#i-block"/></svg>Blocked</button>
     <button data-tab="me" type="button"><svg width="22" height="22"><use href="#i-me"/></svg>My profile</button>
+    <button data-tab="all" type="button" class="founder"><svg width="22" height="22"><use href="#i-grid"/></svg>All players</button>
+    <button data-tab="reports" type="button" class="founder"><svg width="22" height="22"><use href="#i-flag"/></svg>Reports<span class="count" id="openReports" hidden></span></button>
   </nav>
   <div class="foot"><div class="meta" id="who"></div><button class="btn line sm" id="signOut" type="button">Sign out</button></div>
 </aside>
 
 <main class="main">
 <div id="status" class="note" hidden></div>
+<div id="bannedBox" class="card" hidden><h2>Account banned</h2><p class="meta" style="margin:8px 0 0">The Need1More team has banned this account, so it can’t post, join runs or chat. If you think this is a mistake, contact the Need1More team.</p></div>
 
 <section id="tab-feed">
   <div class="head"><h1>Open runs</h1><select id="fltSport" aria-label="Filter by sport"></select></div>
@@ -242,6 +284,8 @@ textarea{min-height:84px;resize:vertical}
       <div><label for="fWhere">Where</label><select id="fWhere" required></select></div>
       <div><label for="fLevel">Skill level</label><select id="fLevel"></select></div>
     </div>
+    <label id="whoLabel">Who can join</label>
+    <div class="checks" id="fWho" role="radiogroup" aria-labelledby="whoLabel"></div>
     <label id="whenLabel">When</label>
     <div class="when" role="group" aria-labelledby="whenLabel">
       <button class="nowbtn" id="fNow" type="button" aria-pressed="false"><span aria-hidden="true">⚡</span> Right now</button>
@@ -262,21 +306,39 @@ textarea{min-height:84px;resize:vertical}
   <div id="threads" class="narrow"></div>
 </section>
 
-<section id="tab-people" hidden>
-  <div class="head"><h1>Players</h1></div>
-  <div class="filters">
-    <input id="pSearch" placeholder="Search by name or major" aria-label="Search players">
-    <select id="pSport" aria-label="Filter players by sport"></select>
-  </div>
-  <div id="people" class="grid"></div>
+<section id="tab-friends" hidden>
+  <div class="head"><h1>Friends</h1></div>
+  <div class="filters"><input id="fdSearch" placeholder="Find players by name to add" aria-label="Find players by name"></div>
+  <div id="fdFound"></div>
+  <div id="friendsBox"></div>
+</section>
+
+<section id="tab-played" hidden>
+  <div class="head"><h1>Played with</h1></div>
+  <p class="meta intro">Everyone you’ve been in a run with. Message them to set up another game, add them as a friend, or block them so they never see your runs.</p>
+  <div id="playedBox" class="grid"></div>
+</section>
+
+<section id="tab-blocked" hidden>
+  <div class="head"><h1>Blocked</h1></div>
+  <p class="meta intro">Blocked players can’t see your runs, you won’t see theirs, and you can’t message each other.</p>
+  <div id="blockedBox" class="grid"></div>
 </section>
 
 <section id="tab-me" hidden>
   <div class="head"><h1>My profile</h1></div>
   <form id="meForm" class="card narrow">
     <p class="meta" style="margin:0">Other players can see this. Your email stays private, and you message people here in chat.</p>
+    <label>Profile photo</label>
+    <div class="photo"><span class="ava lg" id="mAva" aria-hidden="true">?</span>
+      <label class="btn line sm" style="margin:0;color:var(--tx)">Upload photo<input id="mPhoto" type="file" accept="image/jpeg,image/png,image/webp"></label>
+      <button class="btn alt sm" id="mPhotoDel" type="button" hidden>Remove photo</button></div>
     <label for="mName">Name</label>
     <input id="mName" maxlength="40" autocomplete="name" required>
+    <label id="genderLabel">Gender</label>
+    <div class="checks" id="mGender" role="radiogroup" aria-labelledby="genderLabel"></div>
+    <div id="mPronounsBox" hidden><label for="mPronouns">Your pronouns</label>
+    <input id="mPronouns" maxlength="30" placeholder="e.g. they/them"></div>
     <div class="row">
       <div><label for="mYear">Year</label><select id="mYear" required></select></div>
       <div><label for="mMajor">Major</label><select id="mMajor" required></select></div>
@@ -288,14 +350,26 @@ textarea{min-height:84px;resize:vertical}
     <button class="btn submit" type="submit">Save profile</button>
   </form>
 </section>
+
+<section id="tab-all" hidden>
+  <div class="head"><h1>All players</h1></div>
+  <div class="filters"><input id="aSearch" placeholder="Search by name or major" aria-label="Search all players"><select id="aSport" aria-label="Filter by sport"></select></div>
+  <div id="allBox" class="grid"></div>
+</section>
+
+<section id="tab-reports" hidden>
+  <div class="head"><h1>Reports</h1></div>
+  <div id="reportsBox" class="narrow"></div>
+</section>
 </main>
 
 <section class="chat" id="chat" role="dialog" aria-labelledby="chatName" hidden>
   <header><span class="ava" id="chatAva" aria-hidden="true"></span><div><h2 id="chatName"></h2><div class="meta" id="chatRun"></div></div>
+  <button class="x" id="chatReport" type="button" aria-label="Report someone in this chat" title="Report"><svg width="20" height="20"><use href="#i-flag"/></svg></button>
   <button class="x" id="chatClose" type="button" aria-label="Close chat"><svg width="22" height="22"><use href="#i-x"/></svg></button></header>
   <div class="msgs" id="msgs" role="log" aria-live="polite"></div>
   <form id="chatForm"><input id="chatInput" maxlength="1000" placeholder="Write a message" aria-label="Message" autocomplete="off"><button class="btn" id="chatSend" type="submit">Send</button></form>
-  <div class="closed" id="chatClosed" hidden>This chat is closed because the player is no longer in the run.</div>
+  <div class="closed" id="chatClosed" hidden></div>
 </section>
 </div>
 
@@ -303,6 +377,15 @@ textarea{min-height:84px;resize:vertical}
   <h2 id="mdTitle"></h2><p id="mdText"></p>
   <div class="acts"><button class="btn" id="mdYes" type="button"></button><button class="btn line" id="mdNo" type="button">Go back</button></div>
 </div></div>
+
+<div class="modal" id="rpModal" hidden><form class="card" id="rpForm" role="dialog" aria-modal="true" aria-labelledby="rpTitle">
+  <h2 id="rpTitle">Report a player</h2>
+  <p class="meta" style="margin:6px 0 0">Only the Need1More founders see reports. The player isn’t told who reported them.</p>
+  <label for="rpWho">Who</label><select id="rpWho"></select>
+  <label for="rpWhy">What’s wrong</label><select id="rpWhy"></select>
+  <label for="rpDetails">Details (optional)</label><textarea id="rpDetails" maxlength="500"></textarea>
+  <div class="acts"><button class="btn" type="submit">Send report</button><button class="btn line" id="rpNo" type="button">Cancel</button></div>
+</form></div>
 <div id="toast" role="status"></div>
 
 <script>
@@ -313,18 +396,23 @@ var SUPABASE_URL="https://gfdmkivwwgeiugmbfkbi.supabase.co";
 var SUPABASE_KEY="sb_publishable_9UI-Ae_CzRaK2O2k-jWgEQ_daBNQGu8";
 // ======================================================================
 
-var SPORTS=["Basketball","Volleyball","Badminton","Pickleball","Soccer","Tennis","Squash","Other"];
-var EMO={Basketball:"🏀",Volleyball:"🏐",Badminton:"🏸",Pickleball:"🏓",Soccer:"⚽",Tennis:"🎾",Squash:"🎯",Other:"🏅"};
+var SPORTS=["Basketball","Volleyball","Badminton","Pickleball","Ping Pong","Soccer","Tennis","Squash","Other"];
+var EMO={Basketball:"🏀",Volleyball:"🏐",Badminton:"🏸",Pickleball:"🥒","Ping Pong":"🏓",Soccer:"⚽",Tennis:"🎾",Squash:"🎯",Other:"🏅"};
 // Spots people can pick from. Add or rename places here.
 var PLACES=[["Queen’s campus",["ARC – Main Gym","ARC – Squash Courts","Tindall Field","Nixon Field","Richardson Stadium","West Campus Fields","Kingston Hall Courts"]],
 ["Around Kingston",["City Park Courts","Breakwater Park","Leon’s Centre"]]];
-var LEVELS=["Any level","Casual","Intermediate","Competitive"];
+var LEVELS=["Any level","Beginner","Casual","Intermediate","Competitive"];
+var WHO=["Anyone","Guys only","Girls only"];
+var GENDERS=["Male","Female","Other"];
+var REASONS=["Inappropriate messages","Inappropriate picture","Offensive name","Something else"];
 var YEARS=["High school","1st year","2nd year","3rd year","4th year","5th year"];
 var MAJORS=["High school (no major)","Undeclared","Other / not listed",
 "Applied Science (Engineering) – General First Year",
 "Biochemistry","Biology","Biomedical Computing","Biotechnology","Business (Commerce)","Chemical Engineering","Chemistry","Civil Engineering","Classical Studies","Cognitive Science","Computer Engineering","Computer Science","Concurrent Education","Drama","Economics","Electrical Engineering","Engineering Chemistry","Engineering Physics","English Language and Literature","Environmental Science","Environmental Studies","Film and Media","Fine Art (Visual Art)","French","Gender Studies","Geography","Geological Engineering","Geology","Global Development Studies","Health Sciences","History","Indigenous Studies","Jewish Studies","Kinesiology","Languages, Literatures and Cultures","Law (JD)","Life Sciences","Linguistics","Mathematics","Mathematics and Engineering","Mathematics and Statistics","Mechanical Engineering","Medicine (MD)","Mining Engineering","Music","Nursing","Philosophy","Physics","Political Studies","Psychology","Religion","Sociology","Software Design","Statistics","Sustainability","Urban Planning"];
-var TABS=["feed","post","chats","people","me"];
-var sb=null,uid=null,profiles={},posts=[],joins=[],messages=[],chatReady=true;
+// Word filter. The database runs the same check, so it can't be skipped. Add words in both places.
+var BAD=new RegExp("(^|[^a-z])(?:f+u+c+k+|f+u+k+|f+c+k+|f+u+q+|p+h+u+c+k+|m+o+t+h+e+r+f+|s+h+i+t+|b+u+l+l+s+h+i+t+|d+i+p+s+h+i+t+|h+o+r+s+e+s+h+i+t+|b+i+t+c+h+|b+i+a+t+c+h+|c+u+n+t+|w+h+o+r+e+|s+l+u+t+|b+a+s+t+a+r+d+|a+s+s+h+o+l+e+|a+r+s+e+h+o+l+e+|d+u+m+b+a+s+s+|j+a+c+k+a+s+s+|s+m+a+r+t+a+s+s+|d+i+c+k+h+e+a+d+|c+o+c+k+s+u+c+k+|p+u+s+s+y+|r+e+t+a+r+d+|f+a+g+g+o+t+|f+a+g+o+t+|t+r+a+n+n+y+|w+e+t+b+a+c+k+|b+e+a+n+e+r+|r+a+g+h+e+a+d+|t+o+w+e+l+h+e+a+d+|j+i+g+a+b+o+o+|p+o+r+c+h+m+o+n+k+|n+i+g+g+|n+e+g+r+o+|k+i+l+l+[^a-z]+y+o+u+r+s+e+l+f+|k+i+l+l+[^a-z]+u+r+s+e+l+f+|k+i+l+l+[^a-z]+y+o+u+r+[^a-z]+s+e+l+f+|g+o+[^a-z]+d+i+e+)|(^|[^a-z])(?:a+s+s+|a+s+s+e+s+|d+i+c+k+|d+i+c+k+s+|c+o+c+k+|c+o+c+k+s+|t+i+t+s+|t+i+t+t+i+e+s+|c+u+m+|j+i+z+z+|k+y+s+|r+a+p+e+|r+a+p+i+s+t+|f+a+g+|f+a+g+s+|p+a+k+i+|p+a+k+i+s+|c+h+i+n+k+|c+h+i+n+k+s+|s+p+i+c+|s+p+i+c+s+|k+i+k+e+|k+i+k+e+s+|g+o+o+k+|g+o+o+k+s+|c+o+o+n+|c+o+o+n+s+|d+y+k+e+|d+y+k+e+s+|t+w+a+t+|t+w+a+t+s+|h+o+m+o+|h+o+m+o+s+|n+a+z+i+|n+a+z+i+s+|h+i+t+l+e+r+|s+t+f+u+|w+t+f+|m+i+l+f+|p+o+r+n+|n+u+d+e+s+|b+o+o+b+s+)(?![a-z])"),BADC=new RegExp("n+i+g+g+(?:e+r+|a+|u+h+|e+r+s+)|f+a+g+g*o+t+|f+u+c+k+");
+var TABS=["feed","post","chats","friends","played","blocked","me","all","reports"];
+var sb=null,uid=null,profiles={},posts=[],joins=[],messages=[],played=[],friends=[],blocks=[],bans=[],reports=[],isAdmin=false,banned=false;
 var busy=false,filled=false,loaded=false,loadNo=0,openKey=null,channel=null,recovering=false;
 
 var $=function(s){return document.querySelector(s)};
@@ -332,19 +420,33 @@ function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){retur
 function sp(s){return (EMO[s]?EMO[s]+" ":"")+esc(s)}
 function sportOpts(all){return (all?"<option value=\"All sports\">🏟️ All sports</option>":"")+SPORTS.map(function(s){return "<option value=\""+esc(s)+"\">"+sp(s)+"</option>"}).join("")}
 function opts(arr,first){return (first?"<option>"+esc(first)+"</option>":"")+arr.map(function(a){return "<option>"+esc(a)+"</option>"}).join("")}
+function radios(name,arr){return arr.map(function(a,i){return "<label><input type=\"radio\" name=\""+name+"\" value=\""+esc(a)+"\""+(name==="who"&&!i?" checked":"")+">"+esc(a)+"</label>"}).join("")}
+function picked(name){var i=document.querySelector("input[name=\""+name+"\"]:checked");return i?i.value:""}
+function hasBad(t){
+  if(!t)return false;
+  var s=String(t).toLowerCase().replace(/[0134578@$!|]/g,function(c){return {"0":"o","1":"i","3":"e","4":"a","5":"s","7":"t","8":"b","@":"a","$":"s","!":"i","|":"i"}[c]});
+  return BAD.test(s)||BADC.test(s.replace(/[^a-z]/g,""));
+}
+var CLEAN="Keep it clean. That has a word that isn’t allowed on Need1More.";
 function toast(m,ms){var t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(function(){t.classList.remove("on")},ms||3800)}
 function fail(e){
   console.error(e);var m=String(e&&e.message||""),code=e&&e.code;
-  if(code==="PGRST202"||code==="PGRST205"||code==="42P01"){toast("The database update hasn’t been run yet (database-setup.sql).",9000);return}
-  if(code==="23502"&&/contact/.test(m)){toast("The database update hasn’t been run yet (database-setup.sql).",9000);return}
+  if(code==="PGRST202"||code==="PGRST205"||code==="42P01"||code==="42703"){toast("The database update hasn’t been run yet (database-update-2.sql).",9000);return}
+  if(/Keep it clean/.test(m)){toast(CLEAN,6000);return}
+  if(/banned/i.test(m)){toast("This account is banned.",6000);return}
+  if(/guys only|girls only|can.t join/i.test(m)){toast(m+".",6000);return}
   toast(/^Pick a time/.test(m)?m+".":/full/.test(m)?"That run just filled up.":/own run/.test(m)?"You can’t join your own run.":"Error: "+([m,e&&e.details,e&&e.hint].filter(Boolean).join(" | ")||"Something went wrong. Please try again."),9000);
 }
 function chk(r){if(r.error)throw r.error;return r}
 function status(m){[$("#status"),$("#loginStatus")].forEach(function(s){s.textContent=m||"";s.hidden=!m})}
 function me(){return uid&&profiles[uid]?profiles[uid]:null}
-function nameOf(id){return (profiles[id]&&profiles[id].name)||"A player"}
+function nameOf(id){return id===uid?"You":(profiles[id]&&profiles[id].name)||"A player"}
+function ava(id,cls){var p=profiles[id]||{},n=(p.name||"?").charAt(0).toUpperCase();
+  return "<span class=\"ava"+(cls?" "+cls:"")+"\" aria-hidden=\"true\">"+(p.avatar_url?"<img src=\""+esc(p.avatar_url)+"\" alt=\"\" loading=\"lazy\">":esc(n))+"</span>"}
+function pron(p){return p&&p.gender==="Other"&&p.pronouns?" ("+esc(p.pronouns)+")":""}
 function runTime(iso){var t=Date.parse(iso);return t<=Date.now()?"Happening now · started "+new Date(t).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}):when(iso)}
 function when(iso){return new Date(iso).toLocaleString([],{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}
+function day(iso){return new Date(iso).toLocaleDateString([],{weekday:"short",month:"short",day:"numeric"})}
 function clock(iso){var d=new Date(iso),t=d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});return d.toDateString()===new Date().toDateString()?t:d.toLocaleDateString([],{month:"short",day:"numeric"})+", "+t}
 function live(p){return Date.parse(p.starts_at)>Date.now()-2*3600000}
 function same(a,b){return String(a)===String(b)}
@@ -352,17 +454,28 @@ function joinersOf(p){return joins.filter(function(j){return same(j.post_id,p.id
 function postById(id){return posts.filter(function(p){return same(p.id,id)})[0]||null}
 function myPost(){return posts.filter(function(p){return p.host===uid&&live(p)})[0]||null}
 function who(p){return p?esc(p.year||"")+(p.major&&p.major.indexOf("High school")!==0?" · "+esc(p.major):""):""}
+function pair(o){return uid<o?[uid,o]:[o,uid]}
+function isBlocked(id){return blocks.indexOf(id)>-1}
+function isBanned(id){return bans.some(function(b){return b.user_id===id})}
+function friendRow(id){var pr=pair(id);return friends.filter(function(f){return f.a===pr[0]&&f.b===pr[1]})[0]||null}
+function friendState(id){var f=friendRow(id);if(!f)return "";if(f.status==="accepted")return "friends";return f.requested_by===uid?"sent":"received"}
+function playedWith(id){return played.some(function(w){return w.other_id===id})}
+function canJoin(p){var g=(me()||{}).gender;return !p.who||p.who==="Anyone"||(p.who==="Guys only"&&g==="Male")||(p.who==="Girls only"&&g==="Female")}
 
 $("#fltSport").innerHTML=sportOpts(true);
-$("#pSport").innerHTML=sportOpts(true);
+$("#aSport").innerHTML=sportOpts(true);
 $("#fSport").innerHTML=sportOpts();
 $("#fWhere").innerHTML="<option value=\"\">Pick a location</option>"+PLACES.map(function(g){return "<optgroup label=\""+esc(g[0])+"\">"+opts(g[1])+"</optgroup>"}).join("");
 $("#fLevel").innerHTML=opts(LEVELS);
 $("#mLevel").innerHTML=opts(LEVELS);
+$("#fWho").innerHTML=radios("who",WHO);
+$("#mGender").innerHTML=radios("gender",GENDERS);
+$("#rpWhy").innerHTML=opts(REASONS);
 $("#mYear").innerHTML="<option value=\"\">Select year</option>"+opts(YEARS);
 $("#mMajor").innerHTML="<option value=\"\">Select major</option>"+opts(MAJORS);
 $("#fSpots").innerHTML=opts([1,2,3,4,5,6,7,8]);
 $("#mSports").innerHTML=SPORTS.map(function(s){return "<label><input type=\"checkbox\" value=\""+esc(s)+"\">"+sp(s)+"</label>"}).join("");
+$("#mGender").addEventListener("change",function(){$("#mPronounsBox").hidden=picked("gender")!=="Other"});
 
 /* ---------- When picker: right now, or a time in the next 7 days ---------- */
 var nowMode=false,dayIx=-1;
@@ -398,10 +511,14 @@ function pickedTime(){
 resetWhen();
 
 /* ---------- Sections ---------- */
+var current="feed";
 function show(t){
+  if((t==="all"||t==="reports")&&!isAdmin)t="feed";
+  current=t;
   document.querySelectorAll("#tabs button").forEach(function(b){var on=b.dataset.tab===t;b.classList.toggle("on",on);if(on)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
   TABS.forEach(function(n){$("#tab-"+n).hidden=(n!==t)});
   if(t==="post"){buildDays();buildTimes()}
+  var on=$("#tabs .on");if(on&&on.scrollIntoView&&window.innerWidth<=720)on.scrollIntoView({block:"nearest",inline:"center"});
   window.scrollTo(0,0);
 }
 $("#tabs").addEventListener("click",function(e){var b=e.target.closest("button[data-tab]");if(b)show(b.dataset.tab)});
@@ -419,99 +536,202 @@ $("#mdYes").addEventListener("click",function(){closeAsk(true)});
 $("#mdNo").addEventListener("click",function(){closeAsk(false)});
 $("#modal").addEventListener("click",function(e){if(e.target===this)closeAsk(false)});
 $("#modal").addEventListener("keydown",function(e){if(e.key==="Tab"){e.preventDefault();(document.activeElement===$("#mdNo")?$("#mdYes"):$("#mdNo")).focus()}});
-document.addEventListener("keydown",function(e){if(e.key!=="Escape")return;if(answer)closeAsk(false);else if(openKey)closeChat()});
+document.addEventListener("keydown",function(e){if(e.key!=="Escape")return;if(answer)closeAsk(false);else if(!$("#rpModal").hidden)closeReport();else if(openKey)closeChat()});
+
+/* ---------- Report box ---------- */
+var rpChat=null,rpBefore=null;
+function openReport(ids,chatKey){
+  ids=ids.filter(function(i){return i&&i!==uid});if(!ids.length)return;
+  rpChat=chatKey||null;rpBefore=document.activeElement;
+  $("#rpWho").innerHTML=ids.map(function(i){return "<option value=\""+esc(i)+"\">"+esc(nameOf(i))+"</option>"}).join("");
+  $("#rpWhy").value=chatKey?"Inappropriate messages":"Inappropriate picture";
+  $("#rpDetails").value="";$("#rpModal").hidden=false;$("#rpWho").focus();
+}
+function closeReport(){$("#rpModal").hidden=true;if(rpBefore&&rpBefore.focus)rpBefore.focus()}
+$("#rpNo").addEventListener("click",closeReport);
+$("#rpModal").addEventListener("click",function(e){if(e.target===this)closeReport()});
+$("#rpForm").addEventListener("submit",async function(e){
+  e.preventDefault();
+  var id=$("#rpWho").value,why=$("#rpWhy").value,last=null;
+  if(rpChat&&why==="Inappropriate messages"){last=msgsOf(rpChat).filter(function(m){return m.sender_id===id}).slice(-1)[0]||null}
+  var ok=await act(async function(){
+    chk(await sb.from("reports").insert({reported:id,reason:why,details:$("#rpDetails").value.trim()||null,message_id:last?last.id:null}));
+  },"Report sent. Thanks for keeping Need1More safe.");
+  if(ok)closeReport();
+});
 
 /* ---------- Drawing the page ---------- */
 function pips(p,n){var h="";for(var i=0;i<p.spots;i++)h+="<span class=\"pip"+(i<n?" in":"")+"\"></span>";return "<div class=\"pips\" aria-hidden=\"true\">"+h+"</div>"}
-function chatBtn(p,player,label){
-  if(!chatReady)return "";
-  return "<button class=\"btn sm\" type=\"button\" data-chat=\""+esc(keyOf(p.id,player))+"\">"+esc(label)+(isUnread(keyOf(p.id,player))?" (new)":"")+"</button>";
-}
+function whoBadge(p){return p.who&&p.who!=="Anyone"?"<span class=\"badge who\">"+(p.who==="Guys only"?"♂ ":"♀ ")+esc(p.who)+"</span>":""}
+function groupBtn(p,label){var k="g:"+p.id;return "<button class=\"btn sm\" type=\"button\" data-chat=\""+esc(k)+"\">"+esc(label)+(isUnread(k)?" (new)":"")+"</button>"}
 function joinedList(p,js){
-  return "<div class=\"joined\"><h3>Who’s in</h3>"+(js.length?js.map(function(u){return "<div class=\"prow\"><span>"+esc(nameOf(u))+"</span>"+chatBtn(p,u,"Chat")+"</div>"}).join(""):"<span class=\"meta\">Nobody yet</span>")+"</div>";
+  return "<div class=\"joined\"><h3>Who’s in</h3>"+(js.length?js.map(function(u){return "<div class=\"prow\"><span style=\"display:flex;align-items:center;gap:8px\">"+ava(u,"sm")+esc(nameOf(u))+pron(profiles[u])+"</span></div>"}).join(""):"<span class=\"meta\">Nobody yet</span>")+"</div>";
 }
 function renderFeed(){
-  var f=$("#fltSport").value;
-  $("#feedNote").innerHTML=loaded&&!me()?"<div class=\"note\">Create your profile first so people know who’s joining. <a href=\"#\" data-go=\"me\">Set it up</a></div>":"";
-  var list=posts.filter(function(p){return live(p)&&(f==="All sports"||p.sport===f)}).sort(function(a,b){return Date.parse(a.starts_at)-Date.parse(b.starts_at)});
+  var f=$("#fltSport").value,m=me();
+  $("#feedNote").innerHTML=loaded&&!m?"<div class=\"note\">Create your profile first so people know who’s joining. <a href=\"#\" data-go=\"me\">Set it up</a></div>"
+    :loaded&&m&&!m.gender?"<div class=\"note\">Add your gender to your profile to see guys-only and girls-only runs. <a href=\"#\" data-go=\"me\">Add it</a></div>":"";
+  var list=posts.filter(function(p){return live(p)&&!isBlocked(p.host)&&(f==="All sports"||p.sport===f)&&(p.host===uid||joinersOf(p).indexOf(uid)>-1||canJoin(p))}).sort(function(a,b){return Date.parse(a.starts_at)-Date.parse(b.starts_at)});
   if(!list.length){
     $("#list").innerHTML="<div class=\"empty\">"+(loaded?"<h2>No open runs"+(f==="All sports"?" yet":" for "+esc(f))+"</h2><p class=\"meta\" style=\"margin:0 0 16px\">Post one and get the game going.</p><button class=\"btn\" type=\"button\" data-go=\"post\">Post a request</button>":"Loading…")+"</div>";return}
   $("#list").innerHTML=list.map(function(p){
     var js=joinersOf(p),n=js.length,left=Math.max(0,p.spots-n),mine=p.host===uid,joined=!mine&&js.indexOf(uid)>-1,host=profiles[p.host]||{};
     var h="<article class=\"card run\"><div class=\"top\"><span class=\"sport\">"+sp(p.sport)+"</span>"+(left?"<span class=\"need\">Need "+left+" more</span>":"<span class=\"need full\">Full</span>")+"</div>";
-    h+="<div class=\"time\">"+esc(runTime(p.starts_at))+"</div><div class=\"place\">"+esc(p.place)+"</div>"+pips(p,n);
+    h+="<div class=\"time\">"+esc(runTime(p.starts_at))+"</div><div class=\"place\">"+esc(p.place)+whoBadge(p)+"</div>"+pips(p,n);
     h+="<div class=\"meta\">"+n+" of "+esc(p.spots)+" joined · "+esc(p.level||"Any level")+"</div>";
-    h+="<div class=\"meta\">Host: "+(mine?"You":esc(host.name||"A player")+(host.year?" ("+who(host)+")":""))+"</div>";
+    h+="<div class=\"meta\" style=\"display:flex;align-items:center;gap:8px;margin-top:6px\">"+ava(p.host,"sm")+"<span>Host: "+(mine?"You":esc(host.name||"A player")+pron(host)+(host.year?" ("+who(host)+")":""))+"</span></div>";
     if(p.notes)h+="<p class=\"notes\">"+esc(p.notes)+"</p>";
-    if(mine)h+=joinedList(p,js)+"<div class=\"acts\"><button class=\"btn alt\" type=\"button\" data-act=\"cancel\" data-id=\""+esc(p.id)+"\">Cancel request</button></div>";
-    else h+="<div class=\"acts\">"+(joined?chatBtn(p,uid,"Chat with host"):"")+"<button class=\"btn"+(joined?" line sm":"")+"\" type=\"button\" data-act=\"join\" data-id=\""+esc(p.id)+"\""+((!joined&&!left)?" disabled":"")+">"+(joined?"Leave":(left?"I’m in":"Full"))+"</button></div>";
+    if(mine)h+=joinedList(p,js)+"<div class=\"acts\">"+(n?groupBtn(p,"Group chat"):"")+"<button class=\"btn alt\" type=\"button\" data-act=\"cancel\" data-id=\""+esc(p.id)+"\">Cancel request</button>"+"</div>";
+    else h+="<div class=\"acts\">"+(joined?groupBtn(p,"Group chat"):"")+"<button class=\"btn"+(joined?" line sm":"")+"\" type=\"button\" data-act=\"join\" data-id=\""+esc(p.id)+"\""+((!joined&&!left)?" disabled":"")+">"+(joined?"Leave":(left?"I’m in":"Full"))+"</button>"+(isAdmin?"<button class=\"btn alt sm\" type=\"button\" data-act=\"remove\" data-id=\""+esc(p.id)+"\">Remove run</button>":"")+"</div>";
     return h+"</article>"}).join("");
 }
 function renderMyPost(){
   var p=myPost();
-  $("#myPost").innerHTML=p?"<div class=\"card\"><h2>Your active request</h2><div style=\"margin-top:8px\"><span class=\"sport\">"+sp(p.sport)+"</span> · <strong>"+esc(runTime(p.starts_at))+"</strong> · "+esc(p.place)+"</div>"+pips(p,joinersOf(p).length)+joinedList(p,joinersOf(p))+"</div>":"";
+  $("#myPost").innerHTML=p?"<div class=\"card\"><h2>Your active request</h2><div style=\"margin-top:8px\"><span class=\"sport\">"+sp(p.sport)+"</span> · <strong>"+esc(runTime(p.starts_at))+"</strong> · "+esc(p.place)+whoBadge(p)+"</div>"+pips(p,joinersOf(p).length)+joinedList(p,joinersOf(p))+(joinersOf(p).length?"<div class=\"acts\">"+groupBtn(p,"Group chat")+"</div>":"")+"</div>":"";
   $("#myPost").hidden=!p;
 }
-function renderPeople(){
-  var q=$("#pSearch").value.trim().toLowerCase(),s=$("#pSport").value;
+
+/* People cards: Played with, Friends, Blocked and the founders' list */
+function btn(act,id,label,cls){return "<button class=\"btn sm"+(cls?" "+cls:"")+"\" type=\"button\" data-p=\""+act+"\" data-uid=\""+esc(id)+"\">"+esc(label)+"</button>"}
+function friendBtn(id){var s=friendState(id);
+  return s==="friends"?"":s==="sent"?btn("cancel",id,"Requested ✓","line"):s==="received"?btn("accept",id,"Accept friend"):btn("add",id,"Add friend","line")}
+function personCard(id,line,acts){
+  var p=profiles[id]||{};
+  return "<article class=\"card person\"><div class=\"ptop\">"+ava(id)+"<div><strong>"+esc(p.name||"A player")+pron(p)+(isAdmin&&isBanned(id)?"<span class=\"badge\">Banned</span>":"")+"</strong><div class=\"meta\">"+(who(p)||"&nbsp;")+"</div></div></div>"+
+    (line?"<div class=\"meta\">"+line+"</div>":"")+"<div class=\"acts\">"+acts+"</div></article>";
+}
+function emptyBox(title,text){return "<div class=\"empty\">"+(loaded?"<h2>"+esc(title)+"</h2><span class=\"meta\">"+esc(text)+"</span>":"Loading…")+"</div>"}
+function renderPlayed(){
+  var list=played.filter(function(w){return !isBlocked(w.other_id)}).sort(function(a,b){return Date.parse(b.last_at)-Date.parse(a.last_at)});
+  $("#playedBox").innerHTML=list.length?list.map(function(w){var id=w.other_id;
+    return personCard(id,"Last run: "+sp(w.sport||"Other")+" · "+esc(day(w.last_at))+(friendState(id)==="friends"?" · Friends ✓":""),
+      btn("msg",id,"Message")+friendBtn(id)+btn("block",id,"Block","alt")+btn("report",id,"Report","line"))}).join("")
+    :emptyBox("Nobody yet","Join or host a run, and the players you meet show up here.");
+}
+function renderFriends(){
+  var mine=friends.filter(function(f){return f.a===uid||f.b===uid});
+  function other(f){return f.a===uid?f.b:f.a}
+  var inc=mine.filter(function(f){return f.status==="pending"&&f.requested_by!==uid}).map(other).filter(function(i){return !isBlocked(i)});
+  var acc=mine.filter(function(f){return f.status==="accepted"}).map(other).filter(function(i){return !isBlocked(i)});
+  var out=mine.filter(function(f){return f.status==="pending"&&f.requested_by===uid}).map(other);
+  $("#freq").hidden=!inc.length;$("#freq").textContent=inc.length;
+  var h="";
+  if(inc.length)h+="<h2 class=\"sec\">Friend requests</h2><div class=\"grid\">"+inc.map(function(i){return personCard(i,"Wants to be friends",btn("accept",i,"Accept")+btn("decline",i,"Decline","line"))}).join("")+"</div>";
+  h+="<h2 class=\"sec\">Your friends</h2><div class=\"grid\">"+(acc.length?acc.map(function(i){return personCard(i,"",btn("msg",i,"Message")+btn("unfriend",i,"Remove","line")+btn("block",i,"Block","alt"))}).join("")
+    :emptyBox("No friends yet","Search for a player above, or add people from Played with."))+"</div>";
+  if(out.length)h+="<h2 class=\"sec\">Requests you sent</h2><div class=\"grid\">"+out.map(function(i){return personCard(i,"Waiting for them to accept",btn("cancel",i,"Cancel request","line"))}).join("")+"</div>";
+  $("#friendsBox").innerHTML=h;
+  var q=$("#fdSearch").value.trim().toLowerCase();
+  if(q.length<2){$("#fdFound").innerHTML="";return}
+  var ids=Object.keys(profiles).filter(function(id){return id!==uid&&!isBlocked(id)&&String(profiles[id].name||"").toLowerCase().indexOf(q)>-1}).slice(0,12);
+  $("#fdFound").innerHTML="<div class=\"grid\" style=\"margin-bottom:8px\">"+(ids.length?ids.map(function(i){return personCard(i,friendState(i)==="friends"?"Friends ✓":"",(friendState(i)==="friends"?btn("msg",i,"Message"):friendBtn(i)))}).join(""):emptyBox("No players found","Check the spelling and try again."))+"</div>";
+}
+function renderBlocked(){
+  $("#blockedBox").innerHTML=blocks.length?blocks.map(function(i){return personCard(i,"Blocked",btn("unblock",i,"Unblock","line"))}).join("")
+    :emptyBox("Nobody blocked","You can block someone from Played with or Friends.");
+}
+function renderAllPlayers(){
+  if(!isAdmin)return;
+  var q=$("#aSearch").value.trim().toLowerCase(),s=$("#aSport").value;
   var ids=Object.keys(profiles).filter(function(id){var p=profiles[id];
     if(s!=="All sports"&&(p.sports||[]).indexOf(s)<0)return false;
     return !q||(String(p.name||"")+" "+String(p.major||"")+" "+String(p.year||"")).toLowerCase().indexOf(q)>-1}).sort(function(a,b){return String(profiles[a].name).localeCompare(String(profiles[b].name))});
-  $("#people").innerHTML=ids.length?ids.map(function(id){var p=profiles[id];
-    return "<article class=\"card\"><div class=\"top\"><strong>"+esc(p.name)+(id===uid?" (you)":"")+"</strong><span class=\"meta\">"+esc(p.level||"")+"</span></div><div class=\"meta\">"+who(p)+"</div><div>"+(p.sports||[]).map(function(x){return "<span class=\"chip\">"+sp(x)+"</span>"}).join("")+"</div></article>"}).join("")
-    :"<div class=\"empty\">"+(loaded?"<h2>No players found</h2><span class=\"meta\">Try another name or sport.</span>":"Loading…")+"</div>";
+  $("#allBox").innerHTML=ids.length?ids.map(function(id){var p=profiles[id];
+    var line=esc(p.gender||"Gender not set")+(p.level?" · "+esc(p.level):"")+"<br>"+(p.sports||[]).map(function(x){return "<span class=\"chip\">"+sp(x)+"</span>"}).join("");
+    var a=id===uid?"<span class=\"meta\">This is you</span>":(isBanned(id)?btn("unban",id,"Unban","line"):btn("ban",id,"Ban","alt"))+(p.avatar_url?btn("nophoto",id,"Remove photo","line"):"");
+    return personCard(id,line,a)}).join("")
+    :emptyBox("No players found","Try another name or sport.");
 }
-function renderAll(){renderFeed();renderMyPost();renderPeople();renderThreads();renderChat()}
+function renderReports(){
+  if(!isAdmin)return;
+  var open=reports.filter(function(r){return r.status==="open"}).length;
+  $("#openReports").hidden=!open;$("#openReports").textContent=open;
+  var list=reports.slice().sort(function(a,b){return (a.status==="open"?0:1)-(b.status==="open"?0:1)||Date.parse(b.created_at)-Date.parse(a.created_at)});
+  $("#reportsBox").innerHTML=list.length?list.map(function(r){var id=r.reported;
+    var h="<article class=\"card person\" style=\"margin-bottom:12px\"><div class=\"ptop\">"+ava(id)+"<div><strong>"+esc(nameOf(id))+(isBanned(id)?"<span class=\"badge\">Banned</span>":"")+(r.status==="resolved"?"<span class=\"badge who\">Resolved</span>":"")+"</strong><div class=\"meta\">"+esc(r.reason)+" · reported by "+esc(nameOf(r.reporter))+" · "+esc(clock(r.created_at))+"</div></div></div>";
+    if(r.details)h+="<div>"+esc(r.details)+"</div>";
+    if(r.evidence)h+="<div class=\"meta\">Their message:</div><div class=\"rep\">"+esc(r.evidence)+"</div>";
+    if(r.photo_url&&r.reason==="Inappropriate picture")h+="<div class=\"meta\">Their photo when reported:</div><img class=\"thumb\" src=\""+esc(r.photo_url)+"\" alt=\"Reported photo\">";
+    h+="<div class=\"acts\">"+(isBanned(id)?btn("unban",id,"Unban","line"):btn("ban",id,"Ban","alt"))+((profiles[id]||{}).avatar_url?btn("nophoto",id,"Remove photo","line"):"")+(r.status==="open"?"<button class=\"btn sm\" type=\"button\" data-resolve=\""+esc(r.id)+"\">Mark resolved</button>":"")+"</div></article>";
+    return h}).join("")
+    :emptyBox("No reports","When someone reports a player, it shows up here.");
+}
+function renderMe(){
+  var p=me()||{};
+  $("#mAva").outerHTML=ava(uid,"lg").replace("<span class=\"ava lg\"","<span class=\"ava lg\" id=\"mAva\"");
+  $("#mPhotoDel").hidden=!p.avatar_url;
+}
+function renderAll(){
+  document.body.classList.toggle("admin",isAdmin);
+  document.body.classList.toggle("banned",banned);$("#bannedBox").hidden=!banned;
+  renderFeed();renderMyPost();renderThreads();renderChat();renderPlayed();renderFriends();renderBlocked();renderAllPlayers();renderReports();renderMe();
+}
 $("#fltSport").addEventListener("change",renderFeed);
-$("#pSearch").addEventListener("input",renderPeople);
-$("#pSport").addEventListener("change",renderPeople);
+$("#fdSearch").addEventListener("input",renderFriends);
+$("#aSearch").addEventListener("input",renderAllPlayers);
+$("#aSport").addEventListener("change",renderAllPlayers);
 
-/* ---------- Chat: one private chat per run and joined player ---------- */
-function keyOf(post,player){return post+"|"+player}
-function split(k){var i=k.lastIndexOf("|");return {post:k.slice(0,i),player:k.slice(i+1)}}
-function msgsOf(k){return messages.filter(function(m){return keyOf(m.post_id,m.player_id)===k})}
-function otherIn(k){var s=split(k),p=postById(s.post);return s.player===uid?(p?p.host:null):s.player}
-function canSend(k){var s=split(k),p=postById(s.post);return !!p&&joinersOf(p).indexOf(s.player)>-1}
+/* ---------- Chat: one group chat per run, plus direct messages ---------- */
+// Keys: "g:<run id>" for a run's group chat, "d:<player id>" for a direct chat.
+function kind(k){return k.slice(0,2)}
+function ref(k){return k.slice(2)}
+function membersOf(p){return p?[p.host].concat(joinersOf(p)):[]}
+function msgsOf(k){
+  var r=ref(k);
+  if(kind(k)==="g:")return messages.filter(function(m){return m.post_id!=null&&same(m.post_id,r)&&!isBlocked(m.sender_id)});
+  var pr=pair(r);return messages.filter(function(m){return m.dm_low===pr[0]&&m.dm_high===pr[1]});
+}
+function canSend(k){
+  if(banned)return false;
+  var r=ref(k);
+  if(kind(k)==="g:"){var p=postById(r);return !!p&&membersOf(p).indexOf(uid)>-1}
+  return !isBlocked(r)&&(friendState(r)==="friends"||playedWith(r));
+}
 function seenStore(){try{return JSON.parse(localStorage.getItem("n1m-seen-"+uid)||"{}")}catch(e){return {}}}
 function markSeen(k){var l=msgsOf(k).slice(-1)[0];if(!l)return;try{var s=seenStore();if(s[k]===l.created_at)return;s[k]=l.created_at;localStorage.setItem("n1m-seen-"+uid,JSON.stringify(s))}catch(e){}}
 function isUnread(k){if(k===openKey&&!document.hidden)return false;var l=msgsOf(k).slice(-1)[0];return !!l&&l.sender_id!==uid&&Date.parse(l.created_at)>(Date.parse(seenStore()[k])||0)}
 function threadKeys(){
   var ks={};
-  posts.forEach(function(p){joinersOf(p).forEach(function(u){if(p.host===uid||u===uid)ks[keyOf(p.id,u)]=1})});
-  messages.forEach(function(m){if(postById(m.post_id))ks[keyOf(m.post_id,m.player_id)]=1});
-  return Object.keys(ks).sort(function(a,b){var x=msgsOf(a).slice(-1)[0],y=msgsOf(b).slice(-1)[0];return (y?Date.parse(y.created_at):0)-(x?Date.parse(x.created_at):0)});
+  posts.forEach(function(p){if(membersOf(p).indexOf(uid)>-1&&(p.host!==uid||joinersOf(p).length||messages.some(function(m){return same(m.post_id,p.id)})))ks["g:"+p.id]=1});
+  messages.forEach(function(m){if(m.dm_low){var o=m.dm_low===uid?m.dm_high:m.dm_low;if(!isBlocked(o))ks["d:"+o]=1}});
+  if(openKey)ks[openKey]=1;
+  return Object.keys(ks).filter(function(k){return kind(k)==="d:"||postById(ref(k))}).sort(function(a,b){var x=msgsOf(a).slice(-1)[0],y=msgsOf(b).slice(-1)[0];return (y?Date.parse(y.created_at):0)-(x?Date.parse(x.created_at):0)});
+}
+function chatTitle(k){
+  if(kind(k)==="d:")return {ava:ava(ref(k)),name:nameOf(ref(k))+((profiles[ref(k)]||{}).gender==="Other"&&profiles[ref(k)].pronouns?" ("+profiles[ref(k)].pronouns+")":""),sub:"Direct message"};
+  var p=postById(ref(k)),ms=membersOf(p);
+  return {ava:"<span class=\"ava grp\" aria-hidden=\"true\">"+(EMO[p.sport]||"🏅")+"</span>",name:p.sport+" · "+when(p.starts_at),
+    sub:ms.map(function(i){return nameOf(i)+(i===p.host?" (host)":"")}).join(", ")};
 }
 function renderThreads(){
   var ks=threadKeys(),n=ks.filter(isUnread).length;
   $("#unread").hidden=!n;$("#unread").textContent=n;
-  if(!chatReady){$("#threads").innerHTML="<div class=\"empty\"><h2>Chat isn’t set up yet</h2><span class=\"meta\">Run database-setup.sql in Supabase, then reload.</span></div>";return}
   $("#threads").innerHTML=ks.length?ks.map(function(k){
-    var p=postById(split(k).post),o=otherIn(k),l=msgsOf(k).slice(-1)[0];
-    return "<button class=\"card thread\" type=\"button\" data-chat=\""+esc(k)+"\"><span class=\"ava\" aria-hidden=\"true\">"+esc(nameOf(o).charAt(0).toUpperCase())+"</span><span class=\"txt\"><strong>"+esc(nameOf(o))+"</strong><span class=\"meta\">"+sp(p.sport)+" · "+esc(when(p.starts_at))+"</span><span class=\"last\" style=\"display:block\">"+(l?(l.sender_id===uid?"You: ":"")+esc(l.body):"No messages yet")+"</span></span>"+(isUnread(k)?"<span class=\"count\">New</span>":"")+"</button>"}).join("")
-    :"<div class=\"empty\">"+(loaded?"<h2>No chats yet</h2><p class=\"meta\" style=\"margin:0 0 16px\">Join a run and a chat with the host opens here.</p><button class=\"btn\" type=\"button\" data-go=\"feed\">Find a run</button>":"Loading…")+"</div>";
+    var t=chatTitle(k),l=msgsOf(k).slice(-1)[0];
+    return "<button class=\"card thread\" type=\"button\" data-chat=\""+esc(k)+"\">"+t.ava+"<span class=\"txt\"><strong>"+esc(t.name)+"</strong><span class=\"meta\" style=\"display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\">"+esc(t.sub)+"</span><span class=\"last\" style=\"display:block\">"+(l?esc(l.sender_id===uid?"You":nameOf(l.sender_id).split(" ")[0])+": "+esc(l.body):"No messages yet")+"</span></span>"+(isUnread(k)?"<span class=\"count\">New</span>":"")+"</button>"}).join("")
+    :"<div class=\"empty\">"+(loaded?"<h2>No chats yet</h2><p class=\"meta\" style=\"margin:0 0 16px\">Join a run and its group chat opens here. You can also message friends and people you’ve played with.</p><button class=\"btn\" type=\"button\" data-go=\"feed\">Find a run</button>":"Loading…")+"</div>";
 }
 var drawn="";
 function renderChat(){
   if(!openKey)return;
-  var s=split(openKey),p=postById(s.post);
-  if(!p){closeChat();toast("That run was cancelled or replaced, so its chat is gone.");return}
-  var ok=canSend(openKey),list=msgsOf(openKey),box=$("#msgs"),sig=openKey+":"+list.map(function(m){return m.id}).join(",");
-  $("#chatName").textContent=nameOf(otherIn(openKey));
-  $("#chatAva").textContent=nameOf(otherIn(openKey)).charAt(0).toUpperCase();
-  $("#chatRun").textContent=(EMO[p.sport]?EMO[p.sport]+" ":"")+p.sport+" · "+when(p.starts_at)+(s.player===uid?" · Host":"");
+  if(kind(openKey)==="g:"&&!postById(ref(openKey))){closeChat();toast("That run was cancelled or replaced, so its chat is gone.");return}
+  var ok=canSend(openKey),list=msgsOf(openKey),box=$("#msgs"),sig=openKey+":"+list.map(function(m){return m.id}).join(","),t=chatTitle(openKey),grp=kind(openKey)==="g:";
+  $("#chatName").textContent=t.name;$("#chatRun").textContent=t.sub;
+  $("#chatAva").outerHTML=t.ava.replace("<span class=\"ava","<span id=\"chatAva\" class=\"ava");
   $("#chatForm").hidden=!ok;$("#chatClosed").hidden=ok;
+  $("#chatClosed").textContent=banned?"This account is banned.":grp?"You’re no longer in this run, so you can’t send messages here.":isBlocked(ref(openKey))?"You blocked this player. Unblock them to message.":"Add them as a friend to message them.";
   if(sig!==drawn){
     var bottom=drawn.indexOf(openKey+":")!==0||box.scrollHeight-box.scrollTop-box.clientHeight<80||(list.length&&list[list.length-1].sender_id===uid);
-    box.innerHTML=list.length?list.map(function(m){return "<div class=\"msg"+(m.sender_id===uid?" me":"")+"\">"+esc(m.body)+"<time datetime=\""+esc(m.created_at)+"\">"+esc(clock(m.created_at))+"</time></div>"}).join(""):"<div class=\"hint\">No messages yet. Say hi and sort out the details.</div>";
+    box.innerHTML=list.length?list.map(function(m){var mine=m.sender_id===uid;return "<div class=\"msg"+(mine?" me":"")+"\">"+(grp&&!mine?"<span class=\"from\">"+esc(nameOf(m.sender_id))+"</span>":"")+esc(m.body)+"<time datetime=\""+esc(m.created_at)+"\">"+esc(clock(m.created_at))+"</time></div>"}).join("")
+      :"<div class=\"hint\">"+(grp?"No messages yet. Say hi to the group and sort out the details.":"No messages yet. Say hi!")+"</div>";
     drawn=sig;if(bottom)box.scrollTop=box.scrollHeight;
   }
   if(!document.hidden)markSeen(openKey);
 }
 function openChat(k){
-  if(!chatReady)return;
   if(k!==openKey)$("#chatInput").value="";
   openKey=k;drawn="";$("#chat").hidden=false;renderChat();
-  if(openKey){renderThreads();renderFeed();if(canSend(k))$("#chatInput").focus();else $("#chatClose").focus()}
+  if(openKey){renderThreads();renderFeed();if(canSend(k))$("#chatInput").focus();else $("#chatClose").focus();refreshChat()}
 }
 function closeChat(){openKey=null;drawn="";$("#chat").hidden=true}
 function addMessage(m){
@@ -520,61 +740,82 @@ function addMessage(m){
   renderThreads();renderFeed();renderMyPost();renderChat();
 }
 $("#chatClose").addEventListener("click",closeChat);
+$("#chatReport").addEventListener("click",function(){
+  if(!openKey)return;
+  openReport(kind(openKey)==="d:"?[ref(openKey)]:membersOf(postById(ref(openKey))),openKey);
+});
 var sending=false;
 $("#chatForm").addEventListener("submit",async function(e){
   e.preventDefault();
   var k=openKey,i=$("#chatInput"),body=i.value.trim();if(!k||!body||sending)return;
+  if(hasBad(body)){toast(CLEAN,6000);return}
   sending=true;$("#chatSend").disabled=true;
   try{
-    var s=split(k),r=chk(await sb.from("messages").insert({post_id:s.post,player_id:s.player,body:body}).select("id,post_id,player_id,sender_id,body,created_at").single());
+    var row=kind(k)==="g:"?{post_id:ref(k),body:body}:(function(){var pr=pair(ref(k));return {dm_low:pr[0],dm_high:pr[1],body:body}})();
+    var r=chk(await sb.from("messages").insert(row).select("id,post_id,dm_low,dm_high,sender_id,body,created_at").single());
     if(openKey===k&&i.value.trim()===body)i.value="";
     addMessage(r.data);
   }catch(err){
-    if(err&&err.code==="42501"){toast("You can only chat while you’re both in this run.");loadAll()}else fail(err);
+    if(err&&err.code==="42501"){toast(kind(k)==="g:"?"You can only chat while you’re in this run.":"You can’t message this player right now.");loadAll()}else fail(err);
   }finally{sending=false;$("#chatSend").disabled=false;if(openKey===k)i.focus()}
 });
 function listen(){
-  if(channel||!chatReady)return;
+  if(channel)return;
   channel=sb.channel("n1m-messages").on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},function(x){
-    var m=x.new;addMessage(m);
-    if(m&&(!postById(m.post_id)||!canSend(keyOf(m.post_id,m.player_id))))loadAll();
+    var m=x.new;if(!m)return;addMessage(m);
+    if(m.post_id!=null&&!postById(m.post_id))loadAll();
   }).subscribe();
 }
 
 /* ---------- Loading ---------- */
+var MSG_COLS="id,post_id,dm_low,dm_high,sender_id,body,created_at";
 async function loadAll(){
   var no=++loadNo,forUser=uid;if(!forUser)return;
   var r;
   try{
     r=await Promise.all([
-      sb.from("profiles").select("id,name,year,major,level,sports"),
+      sb.from("profiles").select("id,name,year,major,level,sports,gender,pronouns,avatar_url"),
       sb.from("posts").select("*"),
       sb.from("joins").select("post_id,user_id"),
-      sb.from("messages").select("id,post_id,player_id,sender_id,body,created_at").order("created_at",{ascending:false}).limit(500)]);
+      sb.from("messages").select(MSG_COLS).order("created_at",{ascending:false}).limit(1000),
+      sb.from("played_with").select("other_id,sport,last_at"),
+      sb.from("friendships").select("a,b,requested_by,status"),
+      sb.from("blocks").select("blocked"),
+      sb.from("bans").select("user_id,reason"),
+      sb.from("admins").select("user_id")]);
   }catch(e){r=[{error:e}]}
   if(no!==loadNo||uid!==forUser)return;
   var err=r[0].error||r[1].error||r[2].error;
   if(err){console.error(err);status("Couldn’t load data. Check your connection and reload.");return}
+  var upd=r.slice(3).filter(function(x){return x.error})[0];
+  if(upd){console.error(upd.error);status("The database update hasn’t been run yet (database-update-2.sql), so chat and friends won’t work.")}else status("");
   profiles={};r[0].data.forEach(function(p){profiles[p.id]=p});
-  posts=r[1].data;joins=r[2].data;loaded=true;status("");
-  if(r[3].error){
-    if(r[3].error.code==="PGRST205"||r[3].error.code==="42P01")chatReady=false;else console.error(r[3].error);
-  }else{
-    chatReady=true;var got=r[3].data.slice().reverse();
-    messages=got;
-    listen();
-  }
+  posts=r[1].data;joins=r[2].data;loaded=true;
+  messages=r[3].error?[]:r[3].data.slice().reverse();
+  played=r[4].error?[]:r[4].data;
+  friends=r[5].error?[]:r[5].data;
+  blocks=r[6].error?[]:r[6].data.map(function(b){return b.blocked});
+  bans=r[7].error?[]:r[7].data;
+  isAdmin=!r[8].error&&r[8].data.some(function(a){return a.user_id===uid});
+  banned=bans.some(function(b){return b.user_id===uid});
+  if(isAdmin){var rr=await sb.from("reports").select("*").order("created_at",{ascending:false}).limit(300);if(no!==loadNo)return;reports=rr.error?[]:rr.data}
+  if(!r[3].error)listen();
+  if(!isAdmin&&(current==="all"||current==="reports"))show("feed");
   fillProfile();renderAll();
 }
 async function refreshChat(){
-  var k=openKey,s;if(!k||document.hidden)return;s=split(k);
-  var r=await sb.from("messages").select("id,post_id,player_id,sender_id,body,created_at").eq("post_id",s.post).eq("player_id",s.player).order("created_at",{ascending:false}).limit(50);
+  var k=openKey;if(!k||document.hidden)return;
+  var q=sb.from("messages").select(MSG_COLS);
+  if(kind(k)==="g:")q=q.eq("post_id",ref(k));else{var pr=pair(ref(k));q=q.eq("dm_low",pr[0]).eq("dm_high",pr[1])}
+  var r=await q.order("created_at",{ascending:false}).limit(60);
   if(!r.error&&openKey===k)r.data.reverse().forEach(addMessage);
 }
 function fillProfile(){
   var p=profiles[uid];if(!p||filled)return;filled=true;
   $("#mName").value=p.name||"";$("#mYear").value=p.year||"";$("#mMajor").value=p.major||"";
   if(p.level)$("#mLevel").value=p.level;
+  document.querySelectorAll("#mGender input").forEach(function(i){i.checked=i.value===p.gender});
+  $("#mPronouns").value=p.pronouns||"";$("#mPronounsBox").hidden=p.gender!=="Other";
   document.querySelectorAll("#mSports input").forEach(function(i){i.checked=(p.sports||[]).indexOf(i.value)>-1});
 }
 async function act(fn,okMsg){
@@ -587,45 +828,100 @@ document.addEventListener("click",function(e){
   var go=e.target.closest("[data-go]");if(go){e.preventDefault();show(go.dataset.go);return}
   var c=e.target.closest("[data-chat]");if(c)openChat(c.dataset.chat);
 });
-$("#list").addEventListener("click",async function(e){
-  var b=e.target.closest("button[data-act]");if(!b||b.disabled)return;
+async function joinOrLeave(b){
   var id=b.dataset.id,p=postById(id);if(!p)return;
-  if(b.dataset.act==="cancel"){
-    if(!await ask("Cancel this request?","It will be removed for everyone, along with its chats.","Cancel request"))return;
-    act(async function(){chk(await sb.from("posts").delete().eq("id",id).eq("host",uid))},"Request cancelled.");return}
+  if(b.dataset.act==="cancel"||b.dataset.act==="remove"){
+    if(!await ask(b.dataset.act==="remove"?"Remove this run?":"Cancel this request?","It will be removed for everyone, along with its group chat.",b.dataset.act==="remove"?"Remove run":"Cancel request"))return;
+    act(async function(){chk(await sb.from("posts").delete().eq("id",id))},"Run removed.");return}
   if(!me()){toast("Create your profile first.");show("me");return}
   var has=joinersOf(p).indexOf(uid)>-1;
   var ok=await act(async function(){
     if(has)chk(await sb.from("joins").delete().eq("post_id",id).eq("user_id",uid));
     else chk(await sb.from("joins").insert({post_id:id,user_id:uid}));
-  },has?"You left the run.":"You’re in! Say hi to the host.");
-  if(ok&&!has&&postById(id))openChat(keyOf(id,uid));
-  if(ok&&has&&openKey===keyOf(id,uid))closeChat();
+  },has?"You left the run.":"You’re in! Say hi to the group.");
+  if(ok&&!has&&postById(id))openChat("g:"+id);
+  if(ok&&has&&openKey==="g:"+id)closeChat();
+}
+$("#list").addEventListener("click",function(e){var b=e.target.closest("button[data-act]");if(b&&!b.disabled)joinOrLeave(b)});
+document.querySelector("main").addEventListener("click",async function(e){
+  var r=e.target.closest("[data-resolve]");
+  if(r){act(async function(){chk(await sb.from("reports").update({status:"resolved"}).eq("id",r.dataset.resolve))},"Marked resolved.");return}
+  var b=e.target.closest("button[data-p]");if(!b)return;
+  var a=b.dataset.p,id=b.dataset.uid,n=nameOf(id),pr=pair(id);
+  if(a==="msg"){if(!canSend("d:"+id)&&!msgsOf("d:"+id).length){toast("Add "+n+" as a friend to message them.");return}openChat("d:"+id);return}
+  if(a==="report"){openReport([id]);return}
+  if(a==="add"){if(!me()){toast("Create your profile first.");show("me");return}act(async function(){chk(await sb.from("friendships").insert({a:pr[0],b:pr[1]}))},"Friend request sent to "+n+".");return}
+  if(a==="accept"){act(async function(){chk(await sb.from("friendships").update({status:"accepted"}).eq("a",pr[0]).eq("b",pr[1]))},"You and "+n+" are now friends.");return}
+  if(a==="decline"||a==="cancel"){act(async function(){chk(await sb.from("friendships").delete().eq("a",pr[0]).eq("b",pr[1]))},a==="cancel"?"Request cancelled.":"Request declined.");return}
+  if(a==="unfriend"){if(!await ask("Remove "+n+" as a friend?","You can add each other again later.","Remove"))return;
+    act(async function(){chk(await sb.from("friendships").delete().eq("a",pr[0]).eq("b",pr[1]))},"Removed.");return}
+  if(a==="block"){if(!await ask("Block "+n+"?","They won’t see your runs, you won’t see theirs, and you can’t message each other. You can unblock them in Blocked.","Block"))return;
+    var ok=await act(async function(){chk(await sb.from("blocks").insert({blocked:id}))},n+" is blocked.");
+    if(ok&&openKey==="d:"+id)closeChat();return}
+  if(a==="unblock"){act(async function(){chk(await sb.from("blocks").delete().eq("blocker",uid).eq("blocked",id))},n+" is unblocked.");return}
+  if(a==="ban"){if(!await ask("Ban "+n+"?","They won’t be able to post, join runs or chat, and their runs are hidden. You can unban them later.","Ban"))return;
+    act(async function(){chk(await sb.from("bans").insert({user_id:id,reason:"Banned by the founders"}))},n+" is banned.");return}
+  if(a==="unban"){act(async function(){chk(await sb.from("bans").delete().eq("user_id",id))},n+" is unbanned.");return}
+  if(a==="nophoto"){if(!await ask("Remove "+n+"’s photo?","Their profile photo will be taken down.","Remove photo"))return;
+    act(async function(){chk(await sb.from("profiles").update({avatar_url:null}).eq("id",id))},"Photo removed.");return}
 });
 $("#postForm").addEventListener("submit",async function(e){
   e.preventDefault();
   if(!me()){toast("Create your profile first.");show("me");return}
   var place=$("#fWhere").value;if(!place){toast("Pick a location.");return}
-  var t=pickedTime();
+  var t=pickedTime(),notes=$("#fNotes").value.trim();
   if(isNaN(t)){toast("Tap Right now, or pick a day and a time.");return}
   if(!nowMode&&(t<Date.now()||t>=dayStart(7).getTime())){toast("That time has passed. Pick another one.");buildDays();buildTimes();return}
+  if(hasBad(notes)){toast(CLEAN,6000);return}
   var old=myPost(),n=old?joinersOf(old).length:0;
-  if(old&&!await ask("Replace your current request?",n?(n===1?"1 player has":n+" players have")+" joined it. They’ll be removed and its chats will be deleted.":"Your current request will be removed.","Replace it"))return;
+  if(old&&!await ask("Replace your current request?",n?(n===1?"1 player has":n+" players have")+" joined it. They’ll be removed and its group chat will be deleted.":"Your current request will be removed.","Replace it"))return;
   var ok=await act(async function(){
-    chk(await sb.rpc("replace_post",{p_sport:$("#fSport").value,p_place:place,p_starts_at:new Date(nowMode?Date.now():t).toISOString(),p_spots:parseInt($("#fSpots").value,10),p_level:$("#fLevel").value,p_notes:$("#fNotes").value.trim()}));
+    chk(await sb.rpc("replace_post",{p_sport:$("#fSport").value,p_place:place,p_starts_at:new Date(nowMode?Date.now():t).toISOString(),p_spots:parseInt($("#fSpots").value,10),p_level:$("#fLevel").value,p_notes:notes,p_who:picked("who")||"Anyone"}));
   },"Request posted!");
   if(ok){$("#postForm").reset();resetWhen();show("feed")}
 });
 $("#meForm").addEventListener("submit",async function(e){
   e.preventDefault();
   var sports=Array.prototype.slice.call(document.querySelectorAll("#mSports input:checked")).map(function(i){return i.value});
-  var name=$("#mName").value.trim(),year=$("#mYear").value,major=$("#mMajor").value;
+  var name=$("#mName").value.trim(),year=$("#mYear").value,major=$("#mMajor").value,g=picked("gender"),pr=g==="Other"?$("#mPronouns").value.trim():"";
   if(!name||!year||!major){toast("Fill in your name, year and major.");return}
+  if(!g){toast("Pick your gender.");return}
+  if(g==="Other"&&!pr){toast("Type your pronouns.");return}
+  if(hasBad(name)||hasBad(pr)){toast(CLEAN,6000);return}
   if(!sports.length){toast("Pick at least one sport.");return}
   var ok=await act(async function(){
-    chk(await sb.from("profiles").upsert({id:uid,name:name,year:year,major:major,level:$("#mLevel").value,sports:sports,updated:new Date().toISOString()}));
+    chk(await sb.from("profiles").upsert({id:uid,name:name,year:year,major:major,level:$("#mLevel").value,sports:sports,gender:g,pronouns:pr||null,updated:new Date().toISOString()}));
   },"Profile saved.");
   if(ok)show("feed");
+});
+
+/* Profile photo: cropped to a 320px square on this device, then uploaded. */
+function squareJpeg(file){
+  return new Promise(function(ok,no){
+    var url=URL.createObjectURL(file),img=new Image();
+    img.onload=function(){
+      var s=Math.min(img.naturalWidth,img.naturalHeight),c=document.createElement("canvas");c.width=c.height=320;
+      c.getContext("2d").drawImage(img,(img.naturalWidth-s)/2,(img.naturalHeight-s)/2,s,s,0,0,320,320);
+      URL.revokeObjectURL(url);c.toBlob(function(b){b?ok(b):no(new Error("Couldn’t read that image."))},"image/jpeg",0.86);
+    };
+    img.onerror=function(){URL.revokeObjectURL(url);no(new Error("That file isn’t an image we can use."))};
+    img.src=url;
+  });
+}
+$("#mPhoto").addEventListener("change",async function(){
+  var f=this.files&&this.files[0];this.value="";if(!f)return;
+  if(!me()){toast("Save your profile first, then add a photo.");return}
+  if(f.size>15*1024*1024){toast("That photo is too big. Pick one under 15 MB.");return}
+  await act(async function(){
+    var blob=await squareJpeg(f),path=uid+"/"+Date.now()+".jpg";
+    chk(await sb.storage.from("avatars").upload(path,blob,{contentType:"image/jpeg"}));
+    var url=sb.storage.from("avatars").getPublicUrl(path).data.publicUrl;
+    chk(await sb.from("profiles").update({avatar_url:url}).eq("id",uid));
+  },"Photo updated.");
+});
+$("#mPhotoDel").addEventListener("click",async function(){
+  if(!await ask("Remove your photo?","Your profile will show your first initial instead.","Remove photo"))return;
+  act(async function(){chk(await sb.from("profiles").update({avatar_url:null}).eq("id",uid))},"Photo removed.");
 });
 
 /* ---------- Sign in, create account, reset password ---------- */
@@ -681,7 +977,7 @@ $("#signOut").addEventListener("click",async function(){await sb.auth.signOut();
 
 function leave(){
   if(channel){sb.removeChannel(channel);channel=null}
-  closeChat();uid=null;profiles={};posts=[];joins=[];messages=[];loaded=false;filled=false;loadNo++;
+  closeChat();uid=null;profiles={};posts=[];joins=[];messages=[];played=[];friends=[];blocks=[];bans=[];reports=[];isAdmin=false;banned=false;loaded=false;filled=false;loadNo++;
   $("#meForm").reset();$("#postForm").reset();show("feed");
 }
 function enter(session){
@@ -692,7 +988,7 @@ function enter(session){
   if(uid)leave();
   uid=session.user.id;$("#lPass").value="";status("");
   $("#login").hidden=true;$("#app").hidden=false;$("#who").textContent=session.user.email||"";
-  renderAll();loadAll();
+  renderAll();loadAll().then(function(){if(loaded&&!me())show("me")});
 }
 async function init(){
   if(!window.supabase||SUPABASE_URL.indexOf("PASTE")===0||SUPABASE_KEY.indexOf("PASTE")===0){
